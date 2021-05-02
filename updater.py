@@ -27,16 +27,20 @@ print(versions)
 
 for file_name in versions.keys():
     try:
-        file = open(file_name, "rb")
+        if versions[file_name] != "VOID":
+            file = open(file_name, "rb")
 
-        file_contents = file.read()
+            file_contents = file.read()
 
-        file_hash = hashlib.sha256(file_contents, usedforsecurity=True).hexdigest()
+            file_hash = hashlib.sha256(file_contents, usedforsecurity=True).hexdigest()
 
-        print(file_name, file_hash)
+            if file_hash != versions[file_name]:
+                replace(file_name)
 
-        file.close()
+            file.close()
+
+        else:
+            print("Ignored", file_name)
 
     except FileNotFoundError:
         replace(file_name)
-

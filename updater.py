@@ -33,6 +33,8 @@ for file_name in versions.keys():
 
         file_hash = hashlib.sha256(file_contents, usedforsecurity=True).hexdigest()
 
+        print(file_name, file_hash)
+
         file.close()
 
     except FileNotFoundError:

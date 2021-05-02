@@ -1,4 +1,4 @@
-# CLIENT V0.0.5
+# client.py V0.0.5
 # TankTrouble © 2021 by actorpus is licensed under CC BY-NC 4.0. To view a copy of this license, visit http://creativecommons.org/licenses/by-nc/4.0/
 # Copy of client.py can be found at https://raw.githubusercontent.com/actorpus/TankTrouble/main/client.py
 

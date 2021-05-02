@@ -1,4 +1,4 @@
-# V0.0.1
+# updater.py V0.0.1
 
 import requests
 import hashlib
@@ -21,7 +21,7 @@ data = requests.get("https://raw.githubusercontent.com/actorpus/TankTrouble/main
 versions = {}
 
 for v in data.text.split('\n'):
-    versions[v.split(' ')[0]] = v.split(' ')[1:]
+    versions[v.split(' ')[0]] = v.split(' ')[1]
 
 print(versions)
 
@@ -31,9 +31,7 @@ for file_name in versions.keys():
 
         file_contents = file.read()
 
-        print(file_contents.split(b'\n')[0].split(b' ')[2].decode())
-
-        print(hashlib.sha256(file_contents, usedforsecurity=True).hexdigest())
+        file_hash = hashlib.sha256(file_contents, usedforsecurity=True).hexdigest()
 
         file.close()
 

@@ -14,6 +14,7 @@ with open("client_config.json", "r") as file:
 IP = data["IP"]
 COLOUR = tuple(data["COLOUR"])
 NAME = data["NAME"]
+PORT = data["PORT"]
 
 
 def gen_map(m):
@@ -110,14 +111,13 @@ s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 c = pygame.time.Clock()
 ot = pygame.image.load("tank.png")
 ts = {}
-s.connect((IP, 3956))
+s.connect((IP, PORT))
 
 s.send(pickle.dumps([hashlib.sha1(open(__file__, "rb").read() + s.recv(1024), usedforsecurity=True).digest(), COLOUR, NAME]))
-if (print((vr := s.recv(1024))[1:].decode()), vr)[1][0] == 49: open(__file__, "wb").write(vr[1:])
+vr, background = pickle.loads(s.recv(2048))
+print(vr)
+if vr[0] == 49: open(__file__, "wb").write(vr[1:])
 else:
-    init_data = pickle.loads(s.recv(65536))
-    background, = init_data
-
     background = gen_map(background)
 
     while not any([_.type == pygame.QUIT for _ in pygame.event.get()]):

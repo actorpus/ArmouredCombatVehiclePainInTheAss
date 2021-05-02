@@ -1,6 +1,7 @@
 {
   "NAME": "actorpus",
-  "IP": "172.18.8.65",
+  "IP": "8.tcp.ngrok.io",
+  "PORT": 13449,
   "COLOUR": [
     1,
     0.4352,

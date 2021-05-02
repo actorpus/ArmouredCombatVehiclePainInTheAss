@@ -326,9 +326,8 @@ class connections_handler:
 
             if client_hsh == hsh:
                 print("good hash")
-                client.send(b'0CLIENT (%s) VALID' % CLIENT_VERSION)
-
                 client.send(pickle.dumps([
+                    '0CLIENT (%s) VALID' % CLIENT_VERSION,
                     map
                 ]))
 

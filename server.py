@@ -429,7 +429,7 @@ map = """
 
 background = gen_map(map)
 
-connections = connections_handler(connection_limit=1)
+connections = connections_handler(connection_limit=2)
 connections.start()
 
 # while running:

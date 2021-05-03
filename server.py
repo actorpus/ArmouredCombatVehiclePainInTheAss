@@ -187,14 +187,14 @@ class Tank:
 
             # update tank
             if self.data["a"]:
-                self.r += fps * 2
+                self.r += fps * 3  # 2
 
             if self.data["d"]:
-                self.r -= fps * 2
+                self.r -= fps * 3  # 2
 
             if self.data["w"]:
-                nx = self.x + math.sin(self.r) * fps * 50
-                ny = self.y + math.cos(self.r) * fps * 50
+                nx = self.x + math.sin(self.r) * fps * 100  # 50
+                ny = self.y + math.cos(self.r) * fps * 100  # 50
 
                 if background.get_at((int(nx), int(ny))) == (0, 0, 0):
                     return
@@ -203,8 +203,8 @@ class Tank:
                 self.y = ny
 
             if self.data["s"]:
-                nx = self.x - math.sin(self.r) * fps * 50
-                ny = self.y - math.cos(self.r) * fps * 50
+                nx = self.x - math.sin(self.r) * fps * 100  # 50
+                ny = self.y - math.cos(self.r) * fps * 100  # 50
 
                 if background.get_at((int(nx), int(ny))) == (0, 0, 0):
                     return
@@ -454,19 +454,19 @@ while True:
     #     _.localUpdate()
 
     connections.update_all()
-    #
-    # if connections.len_alive() == 1:
-    #     winner = "no one"
-    #
-    #     for _ in connections.connections:
-    #         if _.alive:
-    #             winner = _.name
-    #             break
-    #
-    #     print(winner, "won!")
-    #
-    #     connections.reset_all()
-    #     bullets.reset()
+
+    if connections.len_alive() == 1:
+        winner = "no one"
+
+        for _ in connections.connections:
+            if _.alive:
+                winner = _.name
+                break
+
+        print(winner, "won!")
+
+        connections.reset_all()
+        bullets.reset()
 
     # pygame.display.update()
     clock.tick(60)

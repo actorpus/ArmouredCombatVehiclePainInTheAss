@@ -1,20 +1,30 @@
 # client.py V0.0.5
 # TankTrouble (c) 2021 by actorpus is licensed under CC BY-NC 4.0. To view a copy of this license, visit http://creativecommons.org/licenses/by-nc/4.0/
-# Copy of client.py can be found at https://raw.githubusercontent.com/actorpus/TankTrouble/main/client.py
+# A valid copy of client.py can be found at https://raw.githubusercontent.com/actorpus/TankTrouble/main/client.py
 
 import socket
 import pygame
 import pickle
 import json
 import hashlib
+import sys
 
-with open("client_config.json", "r") as file:
-    data = json.load(file)
+try:
+    with open("client_config.json", "r") as file:
+        data = json.load(file)
+except FileNotFoundError:
+    with open("client_config.json", "w") as file:
+        file.write('{\n  "NAME": "put your name/username here",\n  "IP": "ip of the server goes here",\n  '
+                   '"PORT": port of the server goes here [INT],\n  "COLOUR": [\n    1,\n    0,\n    0,\n    '
+                   '"3 [FLOAT] values between 0 and 1 (represent R, G, B) \n  ]\n}')
+        print("ERROR non existent config")
+        print("please fill client_config.json")
+        sys.exit()
 
-IP = data["IP"]
+IP = str(data["IP"])
 COLOUR = tuple(data["COLOUR"])
-NAME = data["NAME"]
-PORT = data["PORT"]
+NAME = str(data["NAME"])
+PORT = int(data["PORT"])
 
 
 def gen_map(m):

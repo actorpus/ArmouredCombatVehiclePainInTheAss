@@ -8,10 +8,10 @@ import pickle
 
 print(socket.gethostbyname(socket.gethostname()))
 
-CLIENT_VERSION = b"V0.0.5"
+CLIENT_VERSION = 'V0.0.6'
 
 
-class bullet_handler:
+class BulletHandler:
     def __init__(self):
         self.bullets = []
 
@@ -57,24 +57,31 @@ class bullet_handler:
             elif background.get_at((int(self.x) + 4, int(self.y))) == (0, 0, 0):
                 self.dx = - self.dx
 
+            if background.get_at((int(self.x), int(self.y))) == SAFE:
+                self.ttl = 0
+                return True
+
             self.ttl -= tpf
             if self.ttl < 0:
                 return True
 
     def create_bullet(self, tank_obj, limit=6):
-        if sum([b.parent_obj == tank_obj for b in self.bullets]) < limit:
-            self.bullets.append(
-                self._bullet(
-                    tank_obj.x + (math.sin(tank_obj.r) * 15),
-                    tank_obj.y + (math.cos(tank_obj.r) * 15),
-                    tank_obj.r,
-                    tank_obj
-                )
-            )
+        if not any((
+            background.get_at((int(tank_obj.x + 12), int(tank_obj.y))) == SAFE,
+            background.get_at((int(tank_obj.x - 12), int(tank_obj.y))) == SAFE,
+            background.get_at((int(tank_obj.x), int(tank_obj.y + 12))) == SAFE,
+            background.get_at((int(tank_obj.x), int(tank_obj.y - 12))) == SAFE
+        )):
 
-    # def draw_bullets(self):
-    #     for b in self.bullets:
-    #         b.draw(display)
+            if sum([b.parent_obj == tank_obj for b in self.bullets]) < limit:
+                self.bullets.append(
+                    self._bullet(
+                        tank_obj.x + (math.sin(tank_obj.r) * 15),
+                        tank_obj.y + (math.cos(tank_obj.r) * 15),
+                        tank_obj.r,
+                        tank_obj
+                    )
+                )
 
     def update_bullets(self):
         remove = []
@@ -87,31 +94,87 @@ class bullet_handler:
             self.bullets.remove(_)
 
     def check_collision(self, tank_obj, dist=10):
-        return any(
-            [(((b.x - tank_obj.x) ** 2 + (b.y - tank_obj.y) ** 2) ** 0.5) < dist for b in self.bullets]
+        # return any(
+        #     [(((b.x - tank_obj.x) ** 2 + (b.y - tank_obj.y) ** 2) ** 0.5) < dist for b in self.bullets]
+        # )
+        for bullet in self.bullets:
+            if (((bullet.x - tank_obj.x) ** 2 + (bullet.y - tank_obj.y) ** 2) ** 0.5) < dist:  # collision
+                self.bullets.remove(bullet)
+                return True
+
+
+class PowerUpHandler:
+    def __init__(self):
+        self.powerups = []
+
+    def reset(self):
+        self.powerups = []
+
+    def dump_all(self):
+        return [
+            (b.x, b.y, b.type) for b in self.powerups
+        ]
+
+    def spawn_random(self, x, y):
+        return self.spawn(x, y, random.randint(0, 2))
+
+    def spawn(self, x, y, tpe):
+        self.powerups.append(
+            self.powerup(x * 16, y * 16, tpe)
         )
+
+    def update_powerups(self, tanks):
+        remove = []
+
+        for b in self.powerups:
+            if b.update():
+                remove.append(b)
+
+        for _ in remove:
+            self.powerups.remove(_)
+
+        for tank_obj in tanks:
+            for powerup in self.powerups:
+                if (((powerup.x - tank_obj.x) ** 2 + (powerup.y - tank_obj.y) ** 2) ** 0.5) < 10:  # collision
+                    self.powerups.remove(powerup)
+
+                    tank_obj.active_powerup = powerup.type
+
+    class powerup:
+        def __init__(self, x, y, tpe):
+            self.x = x
+            self.y = y
+            self.type = tpe
+            self.ttl = 30
+
+        def update(self):
+            tpf = 1 / clock.get_fps()
+
+            self.ttl -= tpf
+            if self.ttl < 0:
+                return True
 
 
 class Tank:
     def __init__(self, inputs=(pygame.K_w, pygame.K_a, pygame.K_s, pygame.K_d, pygame.K_SPACE), default=(100, 100, 0)):
         self.x, self.y, self.r = default
         self.default = default
-        # self.orig = self.load_image(
-        #     colour=(
-        #         random.random(),
-        #         random.random(),
-        #         random.random()
-        #     )
-        # )
         self.color = 0, 0, 0
         self.alive = True
         self.data = {"w": False, "a": False, "s": False, "d": False, "SPACE": False}
         self.letters = inputs
-        # self.SHOOT_PLEASE = False
+        self.name = ""
         self.shoot_countdown = 0
+        self.active_powerup = 2
+        # 0: NONE
+        # 1: SNIPER
+        # 2: SHIELD
 
     def kill(self):
-        self.alive = False
+        if self.active_powerup == 2:
+            self.active_powerup = 0
+        else:
+            self.alive = False
 
     def get_pos(self):
         return self.x, self.y
@@ -119,67 +182,6 @@ class Tank:
     def reset(self):
         self.x, self.y, self.r = self.default
         self.alive = True
-
-    # @staticmethod
-    # def load_image(name="tank.png", colour=(1, 0, 0)):
-    #     img = pygame.image.load(name)
-    #     new_image = pygame.surface.Surface((img.get_width(), img.get_height())).convert_alpha()
-    #
-    #     for x in range(img.get_width()):
-    #         for y in range(img.get_height()):
-    #             p = img.get_at((x, y))
-    #
-    #             if img.get_at((x, y))[0] == 255:
-    #                 new_image.set_at((x, y), (0, 0, 0, 0))
-    #
-    #             else:
-    #                 new_image.set_at((x, y), (colour[0] * p[0], colour[1] * p[0], colour[2] * p[0], 255))
-    #
-    #     return new_image
-
-    # def draw(self, d):
-    #     if self.alive:
-    #         # draw tank
-    #         r = self.orig.copy()
-    #         r = pygame.transform.rotate(r, self.r * 57.2958)
-    #         # pygame.draw.rect(r, (0, 0, 0, 255), (0, 0, r.get_width(), r.get_height()), 1)
-    #         d.blit(r, (self.x - r.get_width() // 2, self.y - r.get_height() // 2))
-
-    # def localUpdate(self):
-    #     if self.alive:
-    #         # general info
-    #         keys = pygame.key.get_pressed()
-    #         fps = 1 / clock.get_fps()
-    #
-    #         # update tank
-    #         if keys[self.letters[1]]:
-    #             self.r += fps * 2
-    #
-    #         if keys[self.letters[3]]:
-    #             self.r -= fps * 2
-    #
-    #         if keys[self.letters[0]]:
-    #             nx = self.x + math.sin(self.r) * fps * 50
-    #             ny = self.y + math.cos(self.r) * fps * 50
-    #
-    #             if background.get_at((int(nx), int(ny))) == (0, 0, 0):
-    #                 return
-    #
-    #             self.x = nx
-    #             self.y = ny
-    #
-    #         if keys[self.letters[2]]:
-    #             nx = self.x - math.sin(self.r) * fps * 50
-    #             ny = self.y - math.cos(self.r) * fps * 50
-    #
-    #             if background.get_at((int(nx), int(ny))) == (0, 0, 0):
-    #                 return
-    #
-    #             self.x = nx
-    #             self.y = ny
-    #
-    #         if bullets.check_collision(self):
-    #             self.kill()
 
     def parse(self):
         if self.alive:
@@ -211,11 +213,6 @@ class Tank:
 
                 self.x = nx
                 self.y = ny
-
-            # if self.SHOOT_PLEASE:
-            #     print("pew")
-            #     bullets.create_bullet(self)
-            #     self.SHOOT_PLEASE = False
 
             if bullets.check_collision(self):
                 self.kill()
@@ -255,7 +252,7 @@ class connections_handler:
         o = []
         for t in self.connections:
             if t.alive:
-                o.append((t.x, t.y, t.r, t.color))
+                o.append((t.x, t.y, t.r, t.color, t.active_powerup))
 
         return o
 
@@ -304,6 +301,22 @@ class connections_handler:
                 _data += int(tank[3][0] * 255).to_bytes(1, "big")
                 _data += int(tank[3][1] * 255).to_bytes(1, "big")
                 _data += int(tank[3][2] * 255).to_bytes(1, "big")
+                _data += tank[4].to_bytes(1, "big")
+
+            _data += len(data["powerups"]).to_bytes(1, "big")
+
+            print(data)
+
+            print(_data)
+            for powerup in data["powerups"]:
+                # x, y
+                _data += int(powerup[0]).to_bytes(2, "big")
+                _data += int(powerup[1]).to_bytes(2, "big")
+
+                # type
+                _data += int(powerup[2]).to_bytes(1, "big")
+
+            print(_data)
 
             return _data
 
@@ -366,11 +379,12 @@ class connections_handler:
                 self.client.send(self.dump(
                     {
                         "bullets": bullets.dump_all(),
-                        "tanks": connections.dump_all()
+                        "tanks": connections.dump_all(),
+                        "powerups": powerups.dump_all()
                     }
                 ))
 
-                local_clock.tick(75)
+                local_clock.tick(60)
 
 
 # display = pygame.display.set_mode((1024, 1024))
@@ -379,6 +393,9 @@ clock = pygame.time.Clock()
 while clock.get_fps() == 0:
     clock.tick(60)
 # running = True
+
+WALL = 0, 0, 0
+SAFE = 0, 255, 200
 
 
 def gen_map(m):
@@ -390,8 +407,11 @@ def gen_map(m):
 
     for y in range(64):
         for x in range(64):
-            if m[y][x] != " ":
-                pygame.draw.rect(d, (0, 0, 0), (x * 16, y * 16, 16, 16))
+            if m[y][x] == "#":
+                pygame.draw.rect(d, WALL, (x * 16, y * 16, 16, 16))
+
+            elif m[y][x] == "s":
+                pygame.draw.rect(d, SAFE, (x * 16, y * 16, 16, 16))
 
     return d
 
@@ -402,72 +422,75 @@ def gen_map(m):
 # ]
 
 
-bullets = bullet_handler()
+bullets = BulletHandler()
+powerups = PowerUpHandler()
+
+powerups.spawn(32, 16, 2)
 
 map = """
 ################################################################
-#                              ##                              #
-#  #                        #  ##  #                        #  #
-# ## ####   ########   #### ##    ## ####   ########   #### ## #
-#                                                              #
-#  #                        #      #                        #  #
-#  #                        #      #                        #  #
-#  #                        #      #                        #  #
-#  #                        #      #                        #  #
 #                                                              #
 #                                                              #
 #                                                              #
-#  #        ###  ###        #      #        ###  ###        #  #
-#  #        #      #        #      #        #      #        #  #
-#  #        #      #        #      #        #      #        #  #
-#  #                        #      #                        #  #
-#  #                        #      #                        #  #
-#  #        #      #        #      #        #      #        #  #
-#  #        #      #        #      #        #      #        #  #
-#  #        ###  ###        #      #        ###  ###        #  #
+#      #                                                #      #
+#      #                                                #      #
+#      #   #######                            #######   #      #
+#   ####                ################                ####   #
+#                                                              #
+#                                                              #
+#     #                                                  #     #
+#     #                                                  #     #
+#     #                                                  #     #
+#     #                                                  #     #
+#     #                                                  #     #
+#     #                                                  #     #
+#     #                                                  #     #
+#     #                                                  #     #
 #                                                              #
 #                                                              #
 #                                                              #
-#  #                        #      #                        #  #
-#  #                        #      #                        #  #
-#  #                        #      #                        #  #
-#  #                        #  ##  #                        #  #
-#                              ##                              #
-# ## ####   ########   #### ## ## ## ####   ########   #### ## #
-#  #           ##           #  ##  #           ##           #  #
-#              ##              ##              ##              #
-#              ##                              ##              #
-#              ##                              ##              #
-#              ##              ##              ##              #
-#  #           ##           #  ##  #           ##           #  #
-# ## ####   ########   #### ## ## ## ####   ########   #### ## #
-#                              ##                              #
-#  #                        #  ##  #                        #  #
-#  #                        #      #                        #  #
-#  #                        #      #                        #  #
-#  #                        #      #                        #  #
 #                                                              #
 #                                                              #
 #                                                              #
-#  #        ###  ###        #      #        ###  ###        #  #
-#  #        #      #        #      #        #      #        #  #
-#  #        #      #        #      #        #      #        #  #
-#  #                        #      #                        #  #
-#  #                        #      #                        #  #
-#  #        #      #        #      #        #      #        #  #
-#  #        #      #        #      #        #      #        #  #
-#  #        ###  ###        #      #        ###  ###        #  #
+#      #                ######ssss######                #      #
+#      #                ######ssss######                #      #
+#      #                ##ssssssssssss##                #      #
+#      #                ##ssssssssssss##                #      #
+#      #                ##ssssssssssss##                #      #
+#      #                ##ssssssssssss##                #      #
+#      #                ssssssssssssssss                #      #
+#      #                ssssssssssssssss                #      #
+#      #                ssssssssssssssss                #      #
+#      #                ssssssssssssssss                #      #
+#      #                ##ssssssssssss##                #      #
+#      #                ##ssssssssssss##                #      #
+#      #                ##ssssssssssss##                #      #
+#      #                ##ssssssssssss##                #      #
+#      #                ######ssss######                #      #
+#      #                ######ssss######                #      #
 #                                                              #
 #                                                              #
 #                                                              #
-#  #                        #      #                        #  #
-#  #                        #      #                        #  #
-#  #                        #      #                        #  #
-#  #                        #      #                        #  #
 #                                                              #
-# ## ####   ########   #### ##    ## ####   ########   #### ## #
-#  #                        #  ##  #                        #  #
-#                              ##                              #
+#                                                              #
+#                                                              #
+#     #                                                  #     #
+#     #                                                  #     #
+#     #                                                  #     #
+#     #                                                  #     #
+#     #                                                  #     #
+#     #                                                  #     #
+#     #                                                  #     #
+#     #                                                  #     #
+#                                                              #
+#                                                              #
+#   ####                ################                ####   #
+#      #   #######                            #######   #      #
+#      #                                                #      #
+#      #                                                #      #
+#                                                              #
+#                                                              #
+#                                                              #
 ################################################################
 """
 
@@ -488,6 +511,7 @@ connections.start()
 
 while True:
     bullets.update_bullets()
+    powerups.update_powerups(connections.connections)
 
     # display.blit(background, (0, 0))
 

@@ -1,5 +1,4 @@
-# client.py V0.0.5
-# TankTrouble (c) 2021 by actorpus is licensed under CC BY-NC 4.0. To view a copy of this license, visit http://creativecommons.org/licenses/by-nc/4.0/
+# client.py V0.0.6
 # A valid copy of client.py can be found at https://raw.githubusercontent.com/actorpus/TankTrouble/main/client.py
 
 import socket
@@ -34,13 +33,20 @@ def gen_map(m):
 
     for y in range(64):
         for x in range(64):
-            if m[y][x] != " ":
+            if m[y][x] == "#":
                 pygame.draw.rect(d, (0, 0, 0), (x * 16, y * 16, 16, 16))
+            elif m[y][x] == "s":
+                pygame.draw.rect(d, (114, 211, 103), (x * 16, y * 16, 16, 16))
 
     return d
 
 
 def draw_tank(_tank):
+    power = _tank[4]
+
+    if power == 2:  # shield
+        pygame.draw.circle(d, (0, 0, 255), _tank[:2], 20, 2)
+
     if _tank[3] in ts.keys():
             r = ts[_tank[3]].copy()
             r = pygame.transform.rotate(r, _tank[2] * 1.41176)
@@ -65,10 +71,15 @@ def draw_bullet(_bullet):
     pygame.draw.circle(d, (0, 0, 0), _bullet, 2)
 
 
+def draw_powerup(_powerup):
+    d.blit(p, (_powerup[0] + 1, _powerup[1] + 1), ((14 * (_powerup[2] - 1)), 0, 14, 14))
+
+
 def load(data):
     i = 0
 
-    _data = {"bullets": [], "tanks": []}
+    _data = {"bullets": [], "tanks": [], "powerups": []}
+
     nbr_bullets = data[i]
 
     i += 1
@@ -77,11 +88,11 @@ def load(data):
         _data["bullets"].append((int.from_bytes(data[i:i+2], "big"), int.from_bytes(data[i+2:i+4], "big")))
         i += 4
 
-    nbr_tanks = data[i]
+    nbr_powerups = data[i]
 
     i += 1
 
-    for _ in range(nbr_tanks):
+    for _ in range(nbr_powerups):
         _data["tanks"].append(
             (
                 # x, y
@@ -94,11 +105,30 @@ def load(data):
                     data[i+5],
                     data[i+6],
                     data[i+7]
-                )
+                ),
+                # powerup
+                data[i+8]
             )
         )
 
-        i += 8
+        i += 9
+
+    nbr_powerups = data[i]
+
+    i += 1
+
+    for _ in range(nbr_powerups):
+        _data["powerups"].append(
+            (
+                # x, y
+                int.from_bytes(data[i: i + 2], "big"),
+                int.from_bytes(data[i + 2: i + 4], "big"),
+                # type
+                data[i + 4]
+            )
+        )
+
+        i += 5
 
     return _data
 
@@ -117,6 +147,7 @@ d = pygame.display.set_mode((1024, 1024))
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 c = pygame.time.Clock()
 ot = pygame.image.load("tank.png")
+p = pygame.image.load("powerups.png")
 ts = {}
 s.connect((IP, PORT))
 
@@ -146,6 +177,9 @@ else:
 
         for tank in data["tanks"]:
             draw_tank(tank)
+
+        for powerup in data["powerups"]:
+            draw_powerup(powerup)
 
         pygame.display.update()
         c.tick()

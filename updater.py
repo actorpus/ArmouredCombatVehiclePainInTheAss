@@ -1,4 +1,4 @@
-# updater.py V0.0.2
+# updater.py V0.0.3
 
 import requests
 import hashlib
@@ -8,9 +8,11 @@ def replace(_file_name):
     f = requests.get("https://raw.githubusercontent.com/actorpus/TankTrouble/main/" + _file_name, stream=True)
 
     if f.status_code == 200:
-        with open(_file_name, 'wb') as file:
+        with open(_file_name, 'wb') as _file:
             for chunk in f:
-                file.write(chunk)
+                _file.write(chunk)
+
+        print("UPDATED:", _file_name)
 
 data = requests.get("https://raw.githubusercontent.com/actorpus/TankTrouble/main/VERSIONS")
 
@@ -18,8 +20,6 @@ versions = {}
 
 for v in data.text.split('\n'):
     versions[v.split(' ')[0]] = v.split(' ')[1]
-
-print(versions)
 
 for file_name in versions.keys():
     try:
@@ -32,11 +32,13 @@ for file_name in versions.keys():
 
             if file_hash != versions[file_name]:
                 replace(file_name)
+            else:
+                print("VALID:", file_name)
 
             file.close()
 
         else:
-            print("Ignored", file_name)
+            print("IGNORED:", file_name)
 
     except FileNotFoundError:
         replace(file_name)

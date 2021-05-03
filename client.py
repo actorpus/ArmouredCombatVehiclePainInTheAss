@@ -32,10 +32,10 @@ def gen_map(m):
     d = pygame.surface.Surface((1024, 1024))
     d.fill((255, 255, 255))
 
-    for y in range(32):
-        for x in range(32):
+    for y in range(64):
+        for x in range(64):
             if m[y][x] != " ":
-                pygame.draw.rect(d, (0, 0, 0), (x * 32, y * 32, 32, 32))
+                pygame.draw.rect(d, (0, 0, 0), (x * 16, y * 16, 16, 16))
 
     return d
 
@@ -121,7 +121,7 @@ ts = {}
 s.connect((IP, PORT))
 
 s.send(pickle.dumps([hashlib.sha1(open(__file__, "rb").read() + s.recv(1024), usedforsecurity=True).digest(), COLOUR, NAME]))
-vr, background = pickle.loads(s.recv(2048))
+vr, background = pickle.loads(s.recv(8192))
 print(vr[1:])
 if vr[0] == 49: open(__file__, "wb").write(vr[1:])
 else:

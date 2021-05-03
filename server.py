@@ -307,6 +307,18 @@ class connections_handler:
 
             return _data
 
+        @staticmethod
+        def load(data):
+            data = int.from_bytes(data, "big")
+
+            return {
+                "w": (data >> 0) % 2,
+                "a": (data >> 1) % 2,
+                "s": (data >> 2) % 2,
+                "d": (data >> 3) % 2,
+                "SPACE": (data >> 4) % 2
+            }
+
         def __init__(self, parser, client):
             super().__init__()
 
@@ -344,7 +356,7 @@ class connections_handler:
                 data = self.client.recv(1024)
 
                 try:
-                    data2 = pickle.loads(data)
+                    data2 = self.load(data)
                     self.parser.save(data2)
 
                 except pickle.UnpicklingError:
@@ -429,7 +441,7 @@ map = """
 
 background = gen_map(map)
 
-connections = connections_handler(connection_limit=2)
+connections = connections_handler(connection_limit=1)
 connections.start()
 
 # while running:
@@ -455,18 +467,19 @@ while True:
 
     connections.update_all()
 
-    if connections.len_alive() == 1:
-        winner = "no one"
+    if len(connections.connections) > 1:
+        if connections.len_alive() == 1:
+            winner = "no one"
 
-        for _ in connections.connections:
-            if _.alive:
-                winner = _.name
-                break
+            for _ in connections.connections:
+                if _.alive:
+                    winner = _.name
+                    break
 
-        print(winner, "won!")
+            print(winner, "won!")
 
-        connections.reset_all()
-        bullets.reset()
+            connections.reset_all()
+            bullets.reset()
 
     # pygame.display.update()
     clock.tick(60)

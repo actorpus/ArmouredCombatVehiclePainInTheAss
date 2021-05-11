@@ -1,10 +1,11 @@
 {
   "NAME": "actorpus",
-  "IP": "10.112.97.127",
+  "IP": "10.112.96.241",
   "PORT": 3956,
   "COLOUR": [
     1,
     0.4352,
     0
-  ]
+  ],
+  "USE_ARROW_KEYS": false
 }

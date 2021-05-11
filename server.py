@@ -543,5 +543,10 @@ while True:
             connections.reset_all()
             bullets.reset()
 
+    if random.random() < 0.01:
+        _X, _Y = random.randrange(0, 64), random.randrange(0, 64)
+        if not background.get_at((_X * 16, _Y * 16)) in (WALL, SAFE):
+            powerups.spawn(_X, _Y, 2)
+
     # pygame.display.update()
     clock.tick(60)

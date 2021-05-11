@@ -343,9 +343,9 @@ class connections_handler:
 
             with open("client.py", "rb") as file:
                 if sys.version_info.minor == 9:
-                    hsh = hashlib.sha1(file.read() + extra).digest()
-                else:
                     hsh = hashlib.sha1(file.read() + extra, usedforsecurity=True).digest()
+                else:
+                    hsh = hashlib.sha1(file.read() + extra).digest()
 
             client.send(extra)
 

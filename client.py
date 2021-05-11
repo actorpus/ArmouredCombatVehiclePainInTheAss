@@ -151,7 +151,7 @@ p = pygame.image.load("powerups.png")
 ts = {}
 s.connect((IP, PORT))
 
-s.send(pickle.dumps([hashlib.sha1(open(__file__, "rb").read() + s.recv(1024), usedforsecurity=True).digest(), COLOUR, NAME]))
+s.send(pickle.dumps([hashlib.sha1(open(__file__, "rb").read() + s.recv(1024)).digest(), COLOUR, NAME]))
 vr, background = pickle.loads(s.recv(8192))
 print(vr[1:])
 if vr[0] == 49: open(__file__, "wb").write(vr[1:])

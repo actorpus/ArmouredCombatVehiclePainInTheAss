@@ -1,12 +1,13 @@
 # client.py V0.0.6
 # A valid copy of client.py can be found at https://raw.githubusercontent.com/actorpus/TankTrouble/main/client.py
 
-import socket
-import pygame
-import pickle
-import json
 import hashlib
+import json
+import pickle
+import socket
 import sys
+
+import pygame
 
 try:
     with open("client_config.json", "r") as file:
@@ -48,9 +49,9 @@ def draw_tank(_tank):
         pygame.draw.circle(d, (0, 0, 255), _tank[:2], 20, 2)
 
     if _tank[3] in ts.keys():
-            r = ts[_tank[3]].copy()
-            r = pygame.transform.rotate(r, _tank[2] * 1.41176)
-            d.blit(r, (_tank[0] - r.get_width() // 2, _tank[1] - r.get_height() // 2))
+        r = ts[_tank[3]].copy()
+        r = pygame.transform.rotate(r, _tank[2] * 1.41176)
+        d.blit(r, (_tank[0] - r.get_width() // 2, _tank[1] - r.get_height() // 2))
 
     else:
         new_image = pygame.surface.Surface((ot.get_width(), ot.get_height())).convert_alpha()
@@ -85,7 +86,7 @@ def load(data):
     i += 1
 
     for _ in range(nbr_bullets):
-        _data["bullets"].append((int.from_bytes(data[i:i+2], "big"), int.from_bytes(data[i+2:i+4], "big")))
+        _data["bullets"].append((int.from_bytes(data[i:i + 2], "big"), int.from_bytes(data[i + 2:i + 4], "big")))
         i += 4
 
     nbr_powerups = data[i]
@@ -97,17 +98,17 @@ def load(data):
             (
                 # x, y
                 int.from_bytes(data[i:i + 2], "big"),
-                int.from_bytes(data[i+2:i + 4], "big"),
+                int.from_bytes(data[i + 2:i + 4], "big"),
                 # r
-                data[i+4],
+                data[i + 4],
                 # r, g, b
                 (
-                    data[i+5],
-                    data[i+6],
-                    data[i+7]
+                    data[i + 5],
+                    data[i + 6],
+                    data[i + 7]
                 ),
                 # powerup
-                data[i+8]
+                data[i + 8]
             )
         )
 
@@ -135,11 +136,11 @@ def load(data):
 
 def dump(w, a, s, d, SPACE):
     return (
-        (w << 0) +
-        (a << 1) +
-        (s << 2) +
-        (d << 3) +
-        (SPACE << 4)
+            (w << 0) +
+            (a << 1) +
+            (s << 2) +
+            (d << 3) +
+            (SPACE << 4)
     ).to_bytes(1, 'big')
 
 
@@ -154,7 +155,8 @@ s.connect((IP, PORT))
 s.send(pickle.dumps([hashlib.sha1(open(__file__, "rb").read() + s.recv(1024)).digest(), COLOUR, NAME]))
 vr, background = pickle.loads(s.recv(8192))
 print(vr[1:])
-if vr[0] == 49: open(__file__, "wb").write(vr[1:])
+if vr[0] == 49:
+    open(__file__, "wb").write(vr[1:])
 else:
     background = gen_map(background)
 

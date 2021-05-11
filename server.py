@@ -5,6 +5,7 @@ import socket
 import hashlib
 import threading
 import pickle
+import sys
 
 print(socket.gethostbyname(socket.gethostname()))
 
@@ -305,9 +306,9 @@ class connections_handler:
 
             _data += len(data["powerups"]).to_bytes(1, "big")
 
-            print(data)
-
-            print(_data)
+            # print(data)
+            #
+            # print(_data)
             for powerup in data["powerups"]:
                 # x, y
                 _data += int(powerup[0]).to_bytes(2, "big")
@@ -315,8 +316,8 @@ class connections_handler:
 
                 # type
                 _data += int(powerup[2]).to_bytes(1, "big")
-
-            print(_data)
+            #
+            # print(_data)
 
             return _data
 
@@ -338,16 +339,21 @@ class connections_handler:
             self.parser = parser
             self.client = client
 
-            extra = random.randbytes(8)
+            extra = random.getrandbits(64).to_bytes(8, "big")
 
             with open("client.py", "rb") as file:
-                hsh = hashlib.sha1(file.read() + extra, usedforsecurity=True).digest()
+                if sys.version_info.minor == 9:
+                    hsh = hashlib.sha1(file.read() + extra).digest()
+                else:
+                    hsh = hashlib.sha1(file.read() + extra, usedforsecurity=True).digest()
 
             client.send(extra)
 
             client_hsh, parser.color, parser.name = pickle.loads(
                 client.recv(1024)
             )
+
+            print(client_hsh)
 
             if client_hsh == hsh:
                 print("good hash")
@@ -360,7 +366,7 @@ class connections_handler:
                 self.start()
             else:
                 print("bad hash")
-                client.send(b'1CLIENT INTEGRITY COMPROMISED\nPLEASE REACQUIRE %s' % CLIENT_VERSION)
+                client.send(b'1CLIENT INTEGRITY COMPROMISED\nPLEASE REACQUIRE %s' % CLIENT_VERSION.encode())
                 client.close()
 
         def run(self):
@@ -496,7 +502,7 @@ map = """
 
 background = gen_map(map)
 
-connections = connections_handler(connection_limit=1)
+connections = connections_handler(connection_limit=2)
 connections.start()
 
 # while running:

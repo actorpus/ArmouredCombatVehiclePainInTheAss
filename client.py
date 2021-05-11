@@ -25,7 +25,7 @@ IP = str(data["IP"])
 COLOUR = tuple(data["COLOUR"])
 NAME = str(data["NAME"])
 PORT = int(data["PORT"])
-ARROW = bool(data["USE_ARROW_KEYS"])
+WASD = not bool(data["USE_ARROW_KEYS"])
 
 
 def gen_map(m):
@@ -164,10 +164,10 @@ else:
     while not any([_.type == pygame.QUIT for _ in pygame.event.get()]):
         keys = pygame.key.get_pressed()
         s.send(dump(
-            w=keys[pygame.K_UP] if ARROW else keys[pygame.K_w],
-            a=keys[pygame.K_LEFT] if ARROW else keys[pygame.K_a],
-            s=keys[pygame.K_DOWN]if ARROW else keys[pygame.K_s],
-            d=keys[pygame.K_RIGHT] if ARROW else keys[pygame.K_d],
+            w=keys[pygame.K_w] if WASD else keys[pygame.K_UP],
+            a=keys[pygame.K_a] if WASD else keys[pygame.K_LEFT],
+            s=keys[pygame.K_s] if WASD else keys[pygame.K_DOWN],
+            d=keys[pygame.K_d] if WASD else keys[pygame.K_RIGHT],
             SPACE=keys[pygame.K_SPACE]
         ))
 

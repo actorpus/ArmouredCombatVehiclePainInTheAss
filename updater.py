@@ -2,10 +2,11 @@
 
 import requests
 import hashlib
+import sys
 
 
 def replace(_file_name):
-    f = requests.get("https://raw.githubusercontent.com/actorpus/TankTrouble/main/" + _file_name, stream=True)
+    f = requests.get("https://raw.githubusercontent.com/actorpus/TankTrouble/main/" + _file_name, stream=True, verify=False)
 
     if f.status_code == 200:
         with open(_file_name, 'wb') as _file:
@@ -14,7 +15,7 @@ def replace(_file_name):
 
         print("UPDATED:", _file_name)
 
-data = requests.get("https://raw.githubusercontent.com/actorpus/TankTrouble/main/VERSIONS")
+data = requests.get("https://raw.githubusercontent.com/actorpus/TankTrouble/main/VERSIONS", verify=False)
 
 versions = {}
 
@@ -28,8 +29,11 @@ for file_name in versions.keys():
 
             file_contents = file.read()
 
-            file_hash = hashlib.sha256(file_contents, usedforsecurity=True).hexdigest()
-
+            if sys.version_info.minor == 9:
+                file_hash = hashlib.sha256(file_contents, usedforsecurity=True).hexdigest()
+            else:
+                file_hash = hashlib.sha256(file_contents).hexdigest()
+                
             if file_hash != versions[file_name]:
                 replace(file_name)
             else:

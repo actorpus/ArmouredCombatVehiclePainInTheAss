@@ -185,6 +185,7 @@ class Tank:
         # 1: SNIPER
         # 2: SHIELD
 
+
     def kill(self, kill_ent):
         if self.active_powerup == 2 and kill_ent.type != 1:
             self.active_powerup = 0

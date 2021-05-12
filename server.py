@@ -32,6 +32,9 @@ class BulletHandler:
             self.dx = math.sin(r)
             self.dy = math.cos(r)
 
+            self.type = self.parent_obj.active_powerup
+            self.speed = 1000 if self.parent_obj.active_powerup == 1 else 200
+
             self.ttl = 15
 
         def draw(self, d):
@@ -41,24 +44,32 @@ class BulletHandler:
             tpf = 1 / clock.get_fps()
 
             # update position
-            self.x += self.dx * tpf * 200
-            self.y += self.dy * tpf * 200
+            self.x += self.dx * tpf * self.speed
+            self.y += self.dy * tpf * self.speed
 
             # map bounds
             if self.x < 16 or self.x > background.get_width() - 16 or self.y < 16 or self.y > background.get_height() - 16:
                 return True
 
-            # wall collision
-            if background.get_at((int(self.x), int(self.y) - 4)) == (0, 0, 0):
-                self.dy = - self.dy
-            elif background.get_at((int(self.x), int(self.y) + 4)) == (0, 0, 0):
-                self.dy = - self.dy
-            if background.get_at((int(self.x) - 4, int(self.y))) == (0, 0, 0):
-                self.dx = - self.dx
-            elif background.get_at((int(self.x) + 4, int(self.y))) == (0, 0, 0):
-                self.dx = - self.dx
+            if self.type == 1:
+                if background.get_at((int(self.x), int(self.y) - 4)) == (0, 0, 0) or \
+                   background.get_at((int(self.x), int(self.y) + 4)) == (0, 0, 0) or \
+                   background.get_at((int(self.x) - 4, int(self.y))) == (0, 0, 0) or \
+                   background.get_at((int(self.x) + 4, int(self.y))) == (0, 0, 0):
+                    return True
 
-            if background.get_at((int(self.x), int(self.y))) == SAFE:
+            else:
+                # wall collision
+                if background.get_at((int(self.x), int(self.y) - 4)) == (0, 0, 0):
+                    self.dy = - self.dy
+                elif background.get_at((int(self.x), int(self.y) + 4)) == (0, 0, 0):
+                    self.dy = - self.dy
+                if background.get_at((int(self.x) - 4, int(self.y))) == (0, 0, 0):
+                    self.dx = - self.dx
+                elif background.get_at((int(self.x) + 4, int(self.y))) == (0, 0, 0):
+                    self.dx = - self.dx
+
+            if background.get_at((int(self.x), int(self.y))) == SAFE and self.type != 1:
                 self.ttl = 0
                 return True
 
@@ -84,6 +95,9 @@ class BulletHandler:
                     )
                 )
 
+        if tank_obj.active_powerup == 1:
+            tank_obj.active_powerup = 0
+
     def update_bullets(self):
         remove = []
 
@@ -101,7 +115,7 @@ class BulletHandler:
         for bullet in self.bullets:
             if (((bullet.x - tank_obj.x) ** 2 + (bullet.y - tank_obj.y) ** 2) ** 0.5) < dist:  # collision
                 self.bullets.remove(bullet)
-                return True
+                return bullet
 
 
 class PowerUpHandler:
@@ -166,13 +180,13 @@ class Tank:
         self.letters = inputs
         self.name = ""
         self.shoot_countdown = 0
-        self.active_powerup = 2
+        self.active_powerup = 0
         # 0: NONE
         # 1: SNIPER
         # 2: SHIELD
 
-    def kill(self):
-        if self.active_powerup == 2:
+    def kill(self, kill_ent):
+        if self.active_powerup == 2 and kill_ent.type != 1:
             self.active_powerup = 0
         else:
             self.alive = False
@@ -183,21 +197,28 @@ class Tank:
     def reset(self):
         self.x, self.y, self.r = self.default
         self.alive = True
+        self.active_powerup = 0
 
     def parse(self):
         if self.alive:
             fps = 1 / clock.get_fps()
 
+            off = {
+                0: 1,  # NONE
+                1: 0.5,  # SNIPER
+                2: 0.75  # SHIELD
+            }[self.active_powerup]
+
             # update tank
             if self.data["a"]:
-                self.r += fps * 3  # 2
+                self.r += fps * 3 * off  # 2
 
             if self.data["d"]:
-                self.r -= fps * 3  # 2
+                self.r -= fps * 3 * off  # 2
 
             if self.data["w"]:
-                nx = self.x + math.sin(self.r) * fps * 100  # 50
-                ny = self.y + math.cos(self.r) * fps * 100  # 50
+                nx = self.x + math.sin(self.r) * fps * 100 * off  # 50
+                ny = self.y + math.cos(self.r) * fps * 100 * off  # 50
 
                 if background.get_at((int(nx), int(ny))) == (0, 0, 0):
                     return
@@ -215,8 +236,9 @@ class Tank:
                 self.x = nx
                 self.y = ny
 
-            if bullets.check_collision(self):
-                self.kill()
+            bullet = bullets.check_collision(self)
+            if bullet:
+                self.kill(bullet)
 
             self.shoot_countdown -= fps
 
@@ -459,20 +481,20 @@ map = """
 #                                                              #
 #                                                              #
 #      #                ######ssss######                #      #
-#      #                ######ssss######                #      #
-#      #                ##ssssssssssss##                #      #
-#      #                ##ssssssssssss##                #      #
-#      #                ##ssssssssssss##                #      #
-#      #                ##ssssssssssss##                #      #
-#      #                ssssssssssssssss                #      #
-#      #                ssssssssssssssss                #      #
-#      #                ssssssssssssssss                #      #
-#      #                ssssssssssssssss                #      #
-#      #                ##ssssssssssss##                #      #
-#      #                ##ssssssssssss##                #      #
-#      #                ##ssssssssssss##                #      #
-#      #                ##ssssssssssss##                #      #
-#      #                ######ssss######                #      #
+#      #                ######    ######                #      #
+#      #                ##            ##                #      #
+#      #                ##    ssss    ##                #      #
+#      #                ##  ss    ss  ##                #      #
+#      #                ##  s      s  ##                #      #
+#      #                s  s        s  s                #      #
+#      #                s  s        s  s                #      #
+#      #                s  s        s  s                #      #
+#      #                s  s        s  s                #      #
+#      #                ##  s      s  ##                #      #
+#      #                ##  ss    ss  ##                #      #
+#      #                ##    ssss    ##                #      #
+#      #                ##            ##                #      #
+#      #                ######    ######                #      #
 #      #                ######ssss######                #      #
 #                                                              #
 #                                                              #
@@ -502,7 +524,7 @@ map = """
 
 background = gen_map(map)
 
-connections = connections_handler(connection_limit=2)
+connections = connections_handler(connection_limit=1)
 connections.start()
 
 # while running:
@@ -543,10 +565,10 @@ while True:
             connections.reset_all()
             bullets.reset()
 
-    if random.random() < 0.01:
+    if random.random() < 0.004:
         _X, _Y = random.randrange(0, 64), random.randrange(0, 64)
         if not background.get_at((_X * 16, _Y * 16)) in (WALL, SAFE):
-            powerups.spawn(_X, _Y, 2)
+            powerups.spawn_random(_X, _Y)
 
     # pygame.display.update()
-    clock.tick(60)
+    clock.tick(200)

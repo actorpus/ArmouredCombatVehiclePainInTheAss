@@ -6,6 +6,7 @@ import json
 import pickle
 import socket
 import sys
+import math
 
 import pygame
 
@@ -48,6 +49,12 @@ def draw_tank(_tank):
 
     if power == 2:  # shield
         pygame.draw.circle(d, (0, 0, 255), _tank[:2], 20, 2)
+
+    if power == 1:  # sniper
+        pygame.draw.line(d, (255, 0, 0), _tank[:2], (
+            int(_tank[0] + math.sin(_tank[2] * 0.02463994238) * 1449),
+            int(_tank[1] + math.cos(_tank[2] * 0.02463994238) * 1449)
+        ))
 
     if _tank[3] in ts.keys():
         r = ts[_tank[3]].copy()

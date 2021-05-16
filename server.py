@@ -254,7 +254,7 @@ class Tank:
 class connections_handler:
     START_POSS = [
         (48, 48,   0.75 * math.pi),
-        (976, 48,  1.25 * math.pi),
+        (512, 512,  1.25 * math.pi),
         (976, 976, 1.75 * math.pi),
         (48, 976,  0.25 * math.pi)
     ]
@@ -522,7 +522,7 @@ map = """
 
 background = gen_map(map)
 
-connections = connections_handler(connection_limit=1)
+connections = connections_handler(connection_limit=2)
 connections.start()
 
 # while running:

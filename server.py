@@ -454,8 +454,6 @@ def gen_map(m):
 bullets = BulletHandler()
 powerups = PowerUpHandler()
 
-powerups.spawn(32, 16, 2)
-
 map = """
 ################################################################
 #                                                              #
@@ -570,6 +568,11 @@ while True:
         _X, _Y = random.randrange(0, 64), random.randrange(0, 64)
         if not background.get_at((_X * 16, _Y * 16)) in (WALL, SAFE):
             powerups.spawn_random(_X, _Y)
+
+    if random.random() < 0.001:
+        while background.get_at(((x := random.randint(0, 63)) * 16, (y := random.randint(0, 63)) * 16)) == (0, 0, 0):...
+
+        powerups.spawn(x, y, 2)
 
     # pygame.display.update()
     clock.tick(200)

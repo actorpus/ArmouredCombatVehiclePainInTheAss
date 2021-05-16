@@ -3,10 +3,11 @@
 
 import hashlib
 import json
+import math
 import pickle
+import random
 import socket
 import sys
-import math
 
 import pygame
 
@@ -33,13 +34,26 @@ def gen_map(m):
     m = m.split("\n")[1:]
     d = pygame.surface.Surface((1024, 1024))
     d.fill((255, 255, 255))
+    tiles = pygame.image.load("tiles.png")
+
+    print(tiles.get_rect())
 
     for y in range(64):
         for x in range(64):
             if m[y][x] == "#":
-                pygame.draw.rect(d, (0, 0, 0), (x * 16, y * 16, 16, 16))
+                d.blit(
+                    pygame.transform.rotate(tiles.subsurface((32, 0, 16, 16)), random.randint(0, 4) * 90),
+                    (x * 16, y * 16))
+                # pygame.draw.rect(d, (0, 0, 0), (x * 16, y * 16, 16, 16))
             elif m[y][x] == "s":
-                pygame.draw.rect(d, (114, 211, 103), (x * 16, y * 16, 16, 16))
+                d.blit(
+                    pygame.transform.rotate(tiles.subsurface((0, 0, 16, 16)), random.randint(0, 4) * 90),
+                    (x * 16, y * 16))
+                # pygame.draw.rect(d, (114, 211, 103), (x * 16, y * 16, 16, 16))
+            else:
+                d.blit(
+                    pygame.transform.rotate(tiles.subsurface((16, 0, 16, 16)), random.randint(0, 4) * 90),
+                    (x * 16, y * 16))
 
     return d
 

@@ -26,7 +26,7 @@ class BulletHandler:
         ]
 
     class _bullet:
-        def __init__(self, x, y, r, parent_obj):
+        def __init__(self, x, y, r, parent_obj, override_type=None):
             self.x, self.y, r = x, y, r
             self.parent_obj = parent_obj
 
@@ -34,12 +34,34 @@ class BulletHandler:
             self.dy = math.cos(r)
 
             self.type = self.parent_obj.active_power_up
+
+            if override_type is not None:
+                self.type = override_type
+
             self.speed = 2000 if self.parent_obj.active_power_up == 1 else 200
 
-            self.ttl = 15
+            self.ttl = {
+                0: 15,
+                1: 15,
+                2: 15,
+                3: 15,
+                4: 7,
+                5: 5
+            }[self.type]
 
         def draw(self, d):
             pygame.draw.circle(d, (0, 0, 0), (self.x, self.y), 2)
+
+        def explode(self, handler):
+            self.ttl = -1
+            for i in range(12):
+                handler.raw_bullet_create(
+                    self.x,
+                    self.y,
+                    math.atan(self.dx / self.dy) + ((i / 12) * math.pi * 2),
+                    self.parent_obj,
+                    3
+                )
 
         def update(self):
             tpf = 1 / clock.get_fps()
@@ -94,8 +116,23 @@ class BulletHandler:
                 return True
 
             self.ttl -= tpf
-            if self.ttl < 0:
+            if self.ttl < 0 and self.type == 5:
+                self.explode(bullets)
                 return True
+
+            elif self.ttl < 0:
+                return True
+
+    def raw_bullet_create(self, x, y, r, parent, override_type=None):
+        self.bullets.append(
+            self._bullet(
+                x,
+                y,
+                r,
+                parent,
+                override_type=override_type
+            )
+        )
 
     def create_bullet(self, tank_obj, limit=6):
         if not any((
@@ -157,7 +194,7 @@ class BulletHandler:
                     )
                 )
 
-        if tank_obj.active_power_up == 1 or tank_obj.active_power_up == 3:
+        if tank_obj.active_power_up in [1, 3, 5]:
             tank_obj.active_power_up = 0
 
     def update_bullets(self):
@@ -193,7 +230,7 @@ class PowerUpHandler:
         ]
 
     def spawn_random(self, x, y):
-        return self.spawn(x, y, random.randint(0, 4))
+        return self.spawn(x, y, random.randint(1, 5))
 
     def spawn(self, x, y, tpe):
         self.powerups.append(
@@ -251,6 +288,7 @@ class Tank:
         # 2: SHIELD
         # 3: SHOTGUN
         # 4: SPEED BOOST
+        # 5: FIREWORK
 
     def kill(self, kill_ent):
         if self.active_power_up == 2 and kill_ent.type != 1:
@@ -275,7 +313,8 @@ class Tank:
                 1: 0.5,  # SNIPER
                 2: 0.75,  # SHIELD
                 3: 0.85,  # SHOTGUN
-                4: 1.5  # 4: SPEED BOOST
+                4: 1.5,  # SPEED BOOST
+                5: 0.75  # FIREWORK
             }[self.active_power_up]
 
             # update tank

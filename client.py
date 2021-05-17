@@ -37,8 +37,6 @@ def gen_map(m):
     d.fill((255, 255, 255))
     tiles = pygame.image.load("tiles.png")
 
-    print(tiles.get_rect())
-
     for y in range(64):
         for x in range(64):
             if m[y][x] == "#":

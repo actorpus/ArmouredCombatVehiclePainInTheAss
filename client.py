@@ -27,6 +27,7 @@ COLOUR = tuple(data["COLOUR"])
 NAME = str(data["NAME"])
 PORT = int(data["PORT"])
 WASD = not bool(data["USE_ARROW_KEYS"])
+PASSWORD = str(data["PASSWORD"])
 
 
 def gen_map(m):
@@ -160,7 +161,14 @@ p = pygame.image.load("powerups.png")
 ts = {}
 s.connect((IP, PORT))
 
-s.send(pickle.dumps([hashlib.sha1(open(__file__, "rb").read() + s.recv(1024)).digest(), COLOUR, NAME]))
+s.send(pickle.dumps(
+    [
+        hashlib.sha1(PASSWORD.encode() + s.recv(1024)).digest(),
+        COLOUR,
+        NAME
+    ]
+))
+
 vr, background = pickle.loads(s.recv(8192))
 print(vr[1:])
 if vr[0] == 49:

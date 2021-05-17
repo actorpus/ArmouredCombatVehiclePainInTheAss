@@ -10,6 +10,7 @@ import sys
 print(socket.gethostbyname(socket.gethostname()))
 
 CLIENT_VERSION = 'V0.0.6'
+PASSWORD = '1234'
 
 
 class BulletHandler:
@@ -32,8 +33,8 @@ class BulletHandler:
             self.dx = math.sin(r)
             self.dy = math.cos(r)
 
-            self.type = self.parent_obj.active_powerup
-            self.speed = 1000 if self.parent_obj.active_powerup == 1 else 200
+            self.type = self.parent_obj.active_power_up
+            self.speed = 2000 if self.parent_obj.active_power_up == 1 else 200
 
             self.ttl = 15
 
@@ -57,6 +58,25 @@ class BulletHandler:
                    background.get_at((int(self.x) - 4, int(self.y))) == (0, 0, 0) or \
                    background.get_at((int(self.x) + 4, int(self.y))) == (0, 0, 0):
                     return True
+
+            elif self.type == 3:
+                # wall collision
+                if background.get_at((int(self.x), int(self.y) - 4)) == (0, 0, 0):
+                    self.dy = - self.dy
+                    if random.random() < 0.5:
+                        return True
+                elif background.get_at((int(self.x), int(self.y) + 4)) == (0, 0, 0):
+                    self.dy = - self.dy
+                    if random.random() < 0.5:
+                        return True
+                if background.get_at((int(self.x) - 4, int(self.y))) == (0, 0, 0):
+                    self.dx = - self.dx
+                    if random.random() < 0.5:
+                        return True
+                elif background.get_at((int(self.x) + 4, int(self.y))) == (0, 0, 0):
+                    self.dx = - self.dx
+                    if random.random() < 0.5:
+                        return True
 
             else:
                 # wall collision
@@ -85,18 +105,60 @@ class BulletHandler:
             background.get_at((int(tank_obj.x), int(tank_obj.y - 12))) == SAFE
         )):
 
-            if sum([b.parent_obj == tank_obj for b in self.bullets]) < limit:
+            if tank_obj.active_power_up != 3:
+                if sum([b.parent_obj == tank_obj for b in self.bullets]) < limit:
+                    self.bullets.append(
+                        self._bullet(
+                            tank_obj.x + (math.sin(tank_obj.r) * 15),
+                            tank_obj.y + (math.cos(tank_obj.r) * 15),
+                            tank_obj.r,
+                            tank_obj
+                        )
+                    )
+            else:
                 self.bullets.append(
                     self._bullet(
                         tank_obj.x + (math.sin(tank_obj.r) * 15),
                         tank_obj.y + (math.cos(tank_obj.r) * 15),
-                        tank_obj.r,
+                        tank_obj.r - 0.1,
+                        tank_obj
+                    )
+                )
+                self.bullets.append(
+                    self._bullet(
+                        tank_obj.x + (math.sin(tank_obj.r) * 15),
+                        tank_obj.y + (math.cos(tank_obj.r) * 15),
+                        tank_obj.r - 0.05,
+                        tank_obj
+                    )
+                )
+                self.bullets.append(
+                    self._bullet(
+                        tank_obj.x + (math.sin(tank_obj.r) * 15),
+                        tank_obj.y + (math.cos(tank_obj.r) * 15),
+                        tank_obj.r + 0,
+                        tank_obj
+                    )
+                )
+                self.bullets.append(
+                    self._bullet(
+                        tank_obj.x + (math.sin(tank_obj.r) * 15),
+                        tank_obj.y + (math.cos(tank_obj.r) * 15),
+                        tank_obj.r + 0.05,
+                        tank_obj
+                    )
+                )
+                self.bullets.append(
+                    self._bullet(
+                        tank_obj.x + (math.sin(tank_obj.r) * 15),
+                        tank_obj.y + (math.cos(tank_obj.r) * 15),
+                        tank_obj.r + 0.1,
                         tank_obj
                     )
                 )
 
-        if tank_obj.active_powerup == 1:
-            tank_obj.active_powerup = 0
+        if tank_obj.active_power_up == 1 or tank_obj.active_power_up == 3:
+            tank_obj.active_power_up = 0
 
     def update_bullets(self):
         remove = []
@@ -131,7 +193,7 @@ class PowerUpHandler:
         ]
 
     def spawn_random(self, x, y):
-        return self.spawn(x, y, random.randint(0, 2))
+        return self.spawn(x, y, random.randint(0, 4))
 
     def spawn(self, x, y, tpe):
         self.powerups.append(
@@ -150,10 +212,12 @@ class PowerUpHandler:
 
         for tank_obj in tanks:
             for powerup in self.powerups:
-                if (((powerup.x - tank_obj.x) ** 2 + (powerup.y - tank_obj.y) ** 2) ** 0.5) < 10:  # collision
+                if (((powerup.x - tank_obj.x + 8) ** 2 + (powerup.y - tank_obj.y + 8) ** 2) ** 0.5) < 10:  # collision
                     self.powerups.remove(powerup)
 
-                    tank_obj.active_powerup = powerup.type
+                    tank_obj.active_power_up = powerup.type
+                    if powerup.type == 4:  # speed
+                        tank_obj.active_power_up_timer = 6
 
     class powerup:
         def __init__(self, x, y, tpe):
@@ -180,15 +244,17 @@ class Tank:
         self.letters = inputs
         self.name = ""
         self.shoot_countdown = 0
-        self.active_powerup = 0
+        self.active_power_up = 0
+        self.active_power_up_timer = 0
         # 0: NONE
         # 1: SNIPER
         # 2: SHIELD
-
+        # 3: SHOTGUN
+        # 4: SPEED BOOST
 
     def kill(self, kill_ent):
-        if self.active_powerup == 2 and kill_ent.type != 1:
-            self.active_powerup = 0
+        if self.active_power_up == 2 and kill_ent.type != 1:
+            self.active_power_up = 0
         else:
             self.alive = False
 
@@ -198,7 +264,7 @@ class Tank:
     def reset(self):
         self.x, self.y, self.r = self.default
         self.alive = True
-        self.active_powerup = 0
+        self.active_power_up = 0
 
     def parse(self):
         if self.alive:
@@ -207,8 +273,10 @@ class Tank:
             off = {
                 0: 1,  # NONE
                 1: 0.5,  # SNIPER
-                2: 0.75  # SHIELD
-            }[self.active_powerup]
+                2: 0.75,  # SHIELD
+                3: 0.85,  # SHOTGUN
+                4: 1.5  # 4: SPEED BOOST
+            }[self.active_power_up]
 
             # update tank
             if self.data["a"]:
@@ -228,8 +296,8 @@ class Tank:
                 self.y = ny
 
             if self.data["s"]:
-                nx = self.x - math.sin(self.r) * fps * 100  # 50
-                ny = self.y - math.cos(self.r) * fps * 100  # 50
+                nx = self.x - math.sin(self.r) * fps * 100 * off  # 50
+                ny = self.y - math.cos(self.r) * fps * 100 * off  # 50
 
                 if background.get_at((int(nx), int(ny))) == (0, 0, 0):
                     return
@@ -238,10 +306,15 @@ class Tank:
                 self.y = ny
 
             bullet = bullets.check_collision(self)
+
             if bullet:
                 self.kill(bullet)
 
+            if self.active_power_up_timer < 0 and self.active_power_up == 4:
+                self.active_power_up = 0
+
             self.shoot_countdown -= fps
+            self.active_power_up_timer -= fps
 
     def save(self, data):
         self.data = data
@@ -276,7 +349,7 @@ class connections_handler:
         o = []
         for t in self.connections:
             if t.alive:
-                o.append((t.x, t.y, t.r, t.color, t.active_powerup))
+                o.append((t.x, t.y, t.r, t.color, t.active_power_up))
 
         return o
 
@@ -364,11 +437,10 @@ class connections_handler:
 
             extra = random.getrandbits(64).to_bytes(8, "big")
 
-            with open("client.py", "rb") as file:
-                if sys.version_info.minor == 9:
-                    hsh = hashlib.sha1(file.read() + extra, usedforsecurity=True).digest()
-                else:
-                    hsh = hashlib.sha1(file.read() + extra).digest()
+            if sys.version_info.minor == 9:
+                hsh = hashlib.sha1(PASSWORD.encode() + extra, usedforsecurity=True).digest()
+            else:
+                hsh = hashlib.sha1(PASSWORD.encode() + extra).digest()
 
             client.send(extra)
 

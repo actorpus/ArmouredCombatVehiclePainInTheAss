@@ -46,7 +46,7 @@ class BulletHandler:
                 2: 15,
                 3: 15,
                 4: 7,
-                5: 5
+                5: 2
             }[self.type]
 
         def draw(self, d):
@@ -134,7 +134,7 @@ class BulletHandler:
             )
         )
 
-    def create_bullet(self, tank_obj, limit=6):
+    def create_bullet(self, tank_obj, limit=10):
         if not any((
             background.get_at((int(tank_obj.x + 12), int(tank_obj.y))) == SAFE,
             background.get_at((int(tank_obj.x - 12), int(tank_obj.y))) == SAFE,
@@ -283,6 +283,7 @@ class Tank:
         self.shoot_countdown = 0
         self.active_power_up = 0
         self.active_power_up_timer = 0
+        self.disconnected = False
         # 0: NONE
         # 1: SNIPER
         # 2: SHIELD
@@ -393,6 +394,8 @@ class connections_handler:
         return o
 
     def start(self):
+        print("waiting for connections", len(self.connections), "/", self.connection_limit)
+
         while len(self.connections) < self.connection_limit:
             client, connection = self.server.accept()
 
@@ -401,7 +404,17 @@ class connections_handler:
             tank = Tank(default=pos)
 
             self.connections.append(tank)
-            self.connection_handler(tank, client)
+            self.connection_handler(tank, client, self)
+
+            print("waiting for connections", len(self.connections), "/", self.connection_limit)
+
+    def round_check(self):
+        for t in self.connections:
+            if t.disconnected:
+                self.connections.remove(t)
+
+        if len(self.connections) < self.connection_limit:
+            self.start()
 
     def update_all(self):
         for tank in self.connections:
@@ -434,9 +447,9 @@ class connections_handler:
                 _data += (int(tank[2] * 40.584) % 255).to_bytes(1, "big")
 
                 # r, g, b
-                _data += int(tank[3][0] * 255).to_bytes(1, "big")
-                _data += int(tank[3][1] * 255).to_bytes(1, "big")
-                _data += int(tank[3][2] * 255).to_bytes(1, "big")
+                _data += int(tank[3][0]).to_bytes(1, "big")
+                _data += int(tank[3][1]).to_bytes(1, "big")
+                _data += int(tank[3][2]).to_bytes(1, "big")
                 _data += tank[4].to_bytes(1, "big")
 
             _data += len(data["powerups"]).to_bytes(1, "big")
@@ -468,11 +481,12 @@ class connections_handler:
                 "SPACE": (data >> 4) % 2
             }
 
-        def __init__(self, parser, client):
+        def __init__(self, parser, client, parent):
             super().__init__()
 
             self.parser = parser
             self.client = client
+            self.parent = parent
 
             extra = random.getrandbits(64).to_bytes(8, "big")
 
@@ -506,7 +520,12 @@ class connections_handler:
         def run(self):
             local_clock = pygame.time.Clock()
             while True:
-                data = self.client.recv(1024)
+                try:
+                    data = self.client.recv(1024)
+                except ConnectionAbortedError:
+                    print("CLIENT CLOSED CONNECTION")
+                    self.parser.disconnected = True
+                    return
 
                 try:
                     data2 = self.load(data)
@@ -593,20 +612,20 @@ map = """
 #                                                              #
 #                                                              #
 #      #                ######ssss######                #      #
-#      #                ######    ######                #      #
-#      #                ##            ##                #      #
-#      #                ##    ssss    ##                #      #
-#      #                ##  ss    ss  ##                #      #
-#      #                ##  s      s  ##                #      #
-#      #                s  s        s  s                #      #
-#      #                s  s        s  s                #      #
-#      #                s  s        s  s                #      #
-#      #                s  s        s  s                #      #
-#      #                ##  s      s  ##                #      #
-#      #                ##  ss    ss  ##                #      #
-#      #                ##    ssss    ##                #      #
-#      #                ##            ##                #      #
-#      #                ######    ######                #      #
+#      #                ######ssss######                #      #
+#      #                ##ssssssssssss##                #      #
+#      #                ##s          s##                #      #
+#      #                ##s #### ### s##                #      #
+#      #                ##s #### ### s##                #      #
+#      #                sss #### ### sss                #      #
+#      #                sss      ### sss                #      #
+#      #                sss ###      sss                #      #
+#      #                sss ### #### sss                #      #
+#      #                ##s ### #### s##                #      #
+#      #                ##s ### #### s##                #      #
+#      #                ##s          s##                #      #
+#      #                ##ssssssssssss##                #      #
+#      #                ######ssss######                #      #
 #      #                ######ssss######                #      #
 #                                                              #
 #                                                              #
@@ -636,8 +655,21 @@ map = """
 
 background = gen_map(map)
 
+
+def local():
+    while True:
+        try:
+            i = input("> ")
+            exec(i)
+        except Exception as e:
+            print(e)
+
+threading.Thread(target=local).start()
+
+
 connections = connections_handler(connection_limit=1)
 connections.start()
+
 
 # while running:
 #     for e in pygame.event.get():
@@ -676,6 +708,7 @@ while True:
 
             connections.reset_all()
             bullets.reset()
+            connections.round_check()
 
     if random.random() < 0.004:
         _X, _Y = random.randrange(0, 64), random.randrange(0, 64)

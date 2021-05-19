@@ -27,7 +27,7 @@ class get_setup:
     def __init__(self, startup, setting_file=".client_settings.json"):
         self.root = tk.Tk()
         self.root.geometry("300x128")
-        self.root.title("TankTrouble startup")
+        self.root.title("ArmouredCombatVehiclePainInTheAss startup")
         self.root.resizable(False, False)
 
         self.STARTUP = tk.Button(command=self.startup, text="Start Client", justify="left")
@@ -453,7 +453,7 @@ def update():
 
     s.connect(("raw.githubusercontent.com", 443))
 
-    request = b'GET /actorpus/TankTrouble/main/client.pyw HTTP/1.1\r\nhost: raw.githubusercontent.com\r\n\r\n'
+    request = b'GET /actorpus/ArmouredCombatVehiclePainInTheAss/main/client.pyw HTTP/1.1\r\nhost: raw.githubusercontent.com\r\n\r\n'
 
     s.send(request)
 

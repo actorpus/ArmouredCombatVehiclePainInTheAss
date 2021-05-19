@@ -1,19 +1,26 @@
-# client.pyw V0.1.0
-# A valid copy of client.pyw can be found at https://raw.githubusercontent.com/actorpus/TankTrouble/main/client.py
+# client.pyw V0.1.1
 
-import base64
-import hashlib
-import json
-import math
-import os
-import pickle
-import random
-import socket
-import ssl
-import sys
-import tkinter as tk
+try:
+    import base64
+    import hashlib
+    import json
+    import math
+    import os
+    import pickle
+    import random
+    import socket
+    import ssl
+    import sys
+    import tkinter as tk
+except ModuleNotFoundError:
+    print("Problem loading builtin module, please check your python version")
+    sys.exit()
 
-import pygame
+try:
+    import pygame
+except ModuleNotFoundError:
+    print("Please install pygame, use 'pip install pygame'")
+    sys.exit()
 
 
 class get_setup:
@@ -22,7 +29,6 @@ class get_setup:
         self.root.geometry("300x128")
         self.root.title("TankTrouble startup")
         self.root.resizable(False, False)
-        # self.root.attributes('-toolwindow', True)
 
         self.STARTUP = tk.Button(command=self.startup, text="Start Client", justify="left")
         self.ext_startup = startup
@@ -136,8 +142,10 @@ def launch_client(settings):
 
     def gen_map(m):
         m = m.split("\n")[1:]
-        d = pygame.surface.Surface((1024, 1024))
-        d.fill((255, 255, 255))
+        display_map = pygame.surface.Surface((1024, 1024))
+        display_map.fill((255, 255, 255))
+
+        # below is a base64 encoding of the tiles image
         tiles = "1pWsB{R9L33IzNk4f!Yl{RIH_90uf55xz7D*9!pt1OomA0sjO5{saL00|5R5w~cbOifz1?f3bmIt$S9feqgtbbGMChvxa7`d{?xG" \
                 "XtRcAx|4gbfLyePXSR!O3J3=j4GJC+4Idm6ARiPUAQd1Q6d)51ArcQC5)U657$6%NAR8GV8yOxM7aS500{sI9`2ivG3<mg22Ifrx" \
                 "^cMj94FdHw2Hzk6^$h{_1p)j60R996^#csj0Ri^{x|4dZep#@8T(N>-vWRQ7l!35>WUqf-q;*lPdRDWAWwVxpvx;u7eq6STZm)h?" \
@@ -174,21 +182,21 @@ def launch_client(settings):
         for y in range(64):
             for x in range(64):
                 if m[y][x] == "#":
-                    d.blit(
+                    display_map.blit(
                         pygame.transform.rotate(tiles.subsurface((32, 0, 16, 16)), random.randint(0, 4) * 90),
                         (x * 16, y * 16))
                     # pygame.draw.rect(d, (0, 0, 0), (x * 16, y * 16, 16, 16))
                 elif m[y][x] == "s":
-                    d.blit(
+                    display_map.blit(
                         pygame.transform.rotate(tiles.subsurface((0, 0, 16, 16)), random.randint(0, 4) * 90),
                         (x * 16, y * 16))
                     # pygame.draw.rect(d, (114, 211, 103), (x * 16, y * 16, 16, 16))
                 else:
-                    d.blit(
+                    display_map.blit(
                         pygame.transform.rotate(tiles.subsurface((16, 0, 16, 16)), random.randint(0, 4) * 90),
                         (x * 16, y * 16))
 
-        return d
+        return display_map
 
     def draw_tank(_tank):
         power = _tank[4]
@@ -440,79 +448,35 @@ def launch_client(settings):
 
 
 def update():
-    def get(url):
-        method, url = url.split("://")
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s = ssl.wrap_socket(s)
 
-        domain, url = url.split("/", 1)
+    s.connect(("raw.githubusercontent.com", 443))
 
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s = ssl.wrap_socket(s)
+    request = b'GET /actorpus/TankTrouble/main/client.pyw HTTP/1.1\r\nhost: raw.githubusercontent.com\r\n\r\n'
 
-        s.connect((domain, 443 if method == "https" else 80))
+    s.send(request)
 
-        request = b'GET /%s HTTP/1.1\r\nhost: %s\r\n\r\n' % (url.encode(), domain.encode())
+    headers = {}
 
-        s.send(request)
+    _headers = s.recv(2048)
 
-        headers = {}
+    for h in _headers.decode().split("\r\n")[1:]:
+        if h:
+            headers[h.split(": ")[0]] = h.split(": ")[1]
 
-        _headers = s.recv(2048)
+    s.settimeout(5)
 
-        for h in _headers.decode().split("\r\n")[1:]:
-            if h:
-                headers[h.split(": ")[0]] = h.split(": ")[1]
+    data = b''
 
-        s.settimeout(5)
-
-        data = b''
-
-        for _ in range((int(headers["Content-Length"]) // 1400) + 2):
-            try:
-                data += s.read(1400)
-            except socket.timeout:
-                break
-
-        return data
-
-    def replace(_file_name):
-        f = get("https://raw.githubusercontent.com/actorpus/TankTrouble/main/" + _file_name)
-
-        with open(_file_name, 'wb') as _file:
-            _file.write(f)
-
-        print("UPDATED:", _file_name)
-
-    data = get("https://raw.githubusercontent.com/actorpus/TankTrouble/main/VERSIONS")
-
-    versions = {}
-
-    for v in data.decode().split('\n'):
-        versions[v.split(' ')[0]] = v.split(' ')[1]
-
-    for file_name in versions.keys():
+    for _ in range((int(headers["Content-Length"]) // 1400) + 2):
         try:
-            if versions[file_name] != "VOID":
-                file = open(file_name, "rb")
+            data += s.read(1400)
+        except socket.timeout:
+            break
 
-                file_contents = file.read()
-
-                if sys.version_info.minor == 9:
-                    file_hash = hashlib.sha256(file_contents, usedforsecurity=True).hexdigest()
-                else:
-                    file_hash = hashlib.sha256(file_contents).hexdigest()
-
-                if file_hash != versions[file_name]:
-                    replace(file_name)
-                else:
-                    print("VALID:", file_name)
-
-                file.close()
-
-            else:
-                print("IGNORED:", file_name)
-
-        except FileNotFoundError:
-            replace(file_name)
+    with open(__file__, 'wb') as _file:
+        _file.write(data)
 
 
 if __name__ == '__main__':

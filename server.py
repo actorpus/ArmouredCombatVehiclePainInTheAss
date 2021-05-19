@@ -311,10 +311,10 @@ class Tank:
 
             off = {
                 0: 1,  # NONE
-                1: 0.5,  # SNIPER
-                2: 0.75,  # SHIELD
+                1: 0.4,  # SNIPER
+                2: 0.8,  # SHIELD
                 3: 0.85,  # SHOTGUN
-                4: 1.5,  # SPEED BOOST
+                4: 5,  # SPEED BOOST
                 5: 0.75  # FIREWORK
             }[self.active_power_up]
 
@@ -329,8 +329,9 @@ class Tank:
                 nx = self.x + math.sin(self.r) * fps * 100 * off  # 50
                 ny = self.y + math.cos(self.r) * fps * 100 * off  # 50
 
-                if background.get_at((int(nx), int(ny))) == (0, 0, 0):
-                    return
+                if nx < 1024 and ny < 1024:
+                    if background.get_at((int(nx), int(ny))) == (0, 0, 0):
+                        return
 
                 self.x = nx
                 self.y = ny
@@ -370,7 +371,7 @@ class connections_handler:
         (48, 48,   0.75 * math.pi),
         (976, 48,  1.25 * math.pi),
         (976, 976, 1.75 * math.pi),
-        (48, 976,  0.25 * math.pi)
+        (48, 976,  1.75 * math.pi)
     ]
 
     def __init__(self, connection_limit=1, port=3956):
@@ -667,7 +668,7 @@ def local():
 threading.Thread(target=local).start()
 
 
-connections = connections_handler(connection_limit=1)
+connections = connections_handler(connection_limit=2)
 connections.start()
 
 
@@ -710,7 +711,7 @@ while True:
             bullets.reset()
             connections.round_check()
 
-    if random.random() < 0.004:
+    if random.random() < 0.002:
         _X, _Y = random.randrange(0, 64), random.randrange(0, 64)
         if not background.get_at((_X * 16, _Y * 16)) in (WALL, SAFE):
             powerups.spawn_random(_X, _Y)

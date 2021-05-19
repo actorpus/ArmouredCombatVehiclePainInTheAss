@@ -314,7 +314,7 @@ class Tank:
                 1: 0.4,  # SNIPER
                 2: 0.8,  # SHIELD
                 3: 0.85,  # SHOTGUN
-                4: 5,  # SPEED BOOST
+                4: 2,  # SPEED BOOST
                 5: 0.75  # FIREWORK
             }[self.active_power_up]
 
@@ -668,7 +668,7 @@ def local():
 threading.Thread(target=local).start()
 
 
-connections = connections_handler(connection_limit=2)
+connections = connections_handler(connection_limit=4)
 connections.start()
 
 

@@ -1,17 +1,19 @@
 # client.py V0.1.0
 # A valid copy of client.py can be found at https://raw.githubusercontent.com/actorpus/TankTrouble/main/client.py
 
+import base64
 import hashlib
+import json
 import math
+import os
 import pickle
 import random
 import socket
-import pygame
-import tkinter as tk
-import json
-import os
-import sys
 import ssl
+import sys
+import tkinter as tk
+
+import pygame
 
 
 class get_setup:
@@ -136,7 +138,38 @@ def launch_client(settings):
         m = m.split("\n")[1:]
         d = pygame.surface.Surface((1024, 1024))
         d.fill((255, 255, 255))
-        tiles = pygame.image.load("tiles.png")
+        tiles = "1pWsB{R9L33IzNk4f!Yl{RIH_90uf55xz7D*9!pt1OomA0sjO5{saL00|5R5w~cbOifz1?f3bmIt$S9feqgtbbGMChvxa7`d{?xG" \
+                "XtRcAx|4gbfLyePXSR!O3J3=j4GJC+4Idm6ARiPUAQd1Q6d)51ArcQC5)U657$6%NAR8GV8yOxM7aS500{sI9`2ivG3<mg22Ifrx" \
+                "^cMj94FdHw2Hzk6^$h{_1p)j60R996^#csj0Ri^{x|4dZep#@8T(N>-vWRQ7l!35>WUqf-q;*lPdRDWAWwVxpvx;u7eq6STZm)h?" \
+                "000061Opim4Idm89v>AQ9TgcC6&@21AQBH96AvF77#$fG9T^uL85ax+2?PQG0{H_X;sH3#043uU6|fr#*#!Xo2LS#b0Q?>R^EnF9" \
+                "7X<MJ1pEdI(*hlt01MRtvxQ`$b5EprTdjv~vxQ}_ep;n<QlN8DoNr5_b5FC1ZlZNnq;*iHc2uu@SFwR!000020Ra^b3?CU58y6W6" \
+                "4;2s%6&er{9}*865)T~~6crH<6%h{=5f1?X000000rmqH&jcy61rp;b2Hz9{^a2Rq5CQi?0Q*e=@@oszM+)B#4D1jE>L>}-1_Ag3" \
+                "rg>Pdd{(iAWu|vlrg>SSb5EyxTd8?grgc!Da!!_POr~~JuYFgqeOI%DWVelR3Izlb3I`q&5FZy692OWA6Brc~7aJ589TE;15)c*@" \
+                "6BiQ@7ZVT{6A%ms1p)y80R003?+6dw9s&420R9;W;1?LE6A9Qa0_!~p-AMxOSPAJM62Te}#6Jb=Cjk8erg>PeeOI-KYqEo4t$SCk" \
+                "eqN<@QmJ=Ssd!Ycep;k~YOjJ~sd-hYcvP~4W3`HHArcND6Am8|4j&Q^926256ciQ|6dDy08xs=~5fT#;5*HB?7ZDN{5fU8}4;v2*" \
+                "0R9C7>JbdcA_M6h0Q?^V?oJTGJqOxC5WX)LsTT+09uV{u4bTV>#TpII1_Jd1wTf-8ep#!7XsU>FuZC-}f?%(GSfq7Pt9)9rgk!IQ" \
+                "W3PW)sdrSYfMK|gb+LkAA`=cG6AvE}4i^s>6%Y~_6cZQ}5*!s192OWC6B-o~78?{68x$5B6c!*C6de;00Q(FH+%^r*QU~5S0Q@Wf" \
+                "{4N9SL<ZeR5WqeVz%c{x5EA?%1nLwJ!UGku0S4v*tbt>xcvZKOd7pDts(xUygJH3NU72l6uzy>sgKDOIVYP~FopDj4b5O8;TCss&" \
+                "A`=fI6b~8@7Z42^4GIzz5fl~_6B`v19TyiK6&M{76dx579~BfI6%-*F7akZF0`dkB#UK&FKLzPa0R2h<_$vw7DFN<d2i{r&>}v(*" \
+                "EDY^80QpG+?-dB*0tM><t9@LneO#}7SFD6-wT^SFeOj)6UaoyxlW0e#dRn1%RjYhkqjgfNdRMP~SG0&~A`=fG6Av2_5f&5{6%rE{" \
+                "6A~5_6dM&29~c)O78D;75Fiy1AQcfH6%ipB7abWG55fQ$rv(_V4+H5H0QoBm);b!Z5DL~K1n3t8=qM7t4idy71Mo8d`VR=<0v5CY" \
+                "ta?<XbyBc@TeOI2v4LKsePN(-Po;HHu6$OmeOjn_SE6%IsdrPbfLyPBS+j*@A`=fG6Av5{5Em5`7#0*56%!W~6dM*49TgND6BQQ_" \
+                "4;~T^9uf~85)U5|5E&H}9+Chap#%}m1pxH~1nD6Q&@&Ih6a(-G0R003^$iQxDhk^{0rw*T_5%*d0v(zFt$J0ZbyBi}W3Yf-vV>!%" \
+                "dReA-Rk4C!uYFgkcT<;bO{jNLsCQDbi*c=gUbv8UA`=fG6AvB}4;mE`92XQB784j26c`p18WI!}4;T^<5El^;7ZDH_5fC2|5E~Q{" \
+                "8l?ap(-Q;s1_1dc1M5l-$S4Ni3Ig{73El$(@C5?)9Rm3;0R0RB`~w5=0}9y!uY6arfnK3@SFeI$rg~hYcv`Q2U8#a-k7h=!d|07!" \
+                "PpNrUuZC%zbyl5nQn7+yArlWF6Av8{4;K#?7ZDO05)K{|5gZc`91|875hD{26B`v38x<8B6%`*85g-!}3FiVH^b`v05&-*D0Q*@3" \
+                "?I{5J6b0xg7pnyh$^roP2mt>a0Q(gM>IDek0s;C1uY6apeOH)nQLlw*xQ}(QfnTzOW3-5Bs(4eceOI!AVXS~*t%GH;fnJ($P_Tbn" \
+                "ArlWF77`f|8w?2=4GI+*5Dy^}4<Hl}9~c)N7#<xL7abNB9TpZH78V~B5+M^04EY2k-2x!I2@2#y0Q)ik{}cfJI{^D-2H`3M?jr#E" \
+                "836u81MWH!ya*So0SDs)uYOsbc3QE4UbBT}s(4eIa8a*)Sgw3ku6tFme_OJIWV426w~cYIfLyD3SFe3oAruiH7#15977+~>4h<3+" \
+                "5f2{|4<Hi{AQlrJ7Ze>A6&)579TpTF78Dp15gii`3i$&d*8n1|0TjX%2ki;~{tE#99{~L^0QW8h>QMpsDgga00Q)Qi>j?+p0|EI1" \
+                "r-EvzfMl?MT(*mDs(V_kdsnZ0SFL<lta?<lhGx2wd8>Y2t9)9od{(b~R<nj?ArlWE7Ze{E791258Wj>A91|WE6Cf579~TrH7!?>7" \
+                "6&Mv17!?#46%-T`5*HE>0{sIC@BtFc01w6h4et>E`XvPHItA$z2IdkIx*Z7K4FUTK0RIXB{{;a51OWX6v50M(aZ|2=VYQ2Jl4(n&" \
+                "c2ll=R-|=MrFK)Wep;$}R+VW<sd-kfd{?rBWV(}jAQKNE6A&O46CD>4A0HGS9~B=T6(1TG9~l=P85bNG7Zwy778Dy66dMl?6cY~@" \
+                "0R962`~w2@0|fB{7W*Rw>oyG3O%uEr4%r71yaov00|EO40sjO8{{{g61OWX5uZ?%5dRwP~Xs?1|uzy>zfL^YARkMX;uYFgtgJQFW" \
+                "XRv=;uzp&veOI=OZ@iX%9up5B6AvE~4;>m3ARrYVAQc}U6(1H99u*TH8W<oO866oL9T^)P85<Q79uf}`"
+
+        tiles = base64.b85decode(tiles)
+        tiles = pygame.image.fromstring(tiles, (48, 16), "RGB")
 
         for y in range(64):
             for x in range(64):
@@ -263,8 +296,99 @@ def launch_client(settings):
     d = pygame.display.set_mode((1024, 1024))
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     c = pygame.time.Clock()
-    ot = pygame.image.load("tank.png")
-    p = pygame.image.load("powerups.png")
+    ot = b'|NsC0|NlNdK0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K0g2d|NsC0|Ns9!K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K' \
+         b'0ZD^K0ZD^KL7v!0000!K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^J^%m!0000!K0ZD^K0ZD^d3kwxd3kwxd3kwxd3' \
+         b'kwxd3kwxd3kwxK0ZD^K0ZD^J^%m!0000!K0ZD^K6!b0d3kwxd3kwxd3kwxd3kwxd3kwxd3kwxd3kw0K0ZD^J^%m!0000!K0ZD^K6!b0d3k' \
+         b'wxd3kwxd3kwxd3kwxd3kwxd3kwxd3kw0K0ZD^J^%m!0000!K0ZD^K6!b0d3kwxd3kwxd3kwxd3kwxd3kwxd3kwxd3kw0K0ZD^J^%m!0000' \
+         b'!K0ZD^K6!b0d3kwxd3kwxd3kwxd3kwxd3kwxd3kwxd3kw0K0ZD^J^%m!0000!K0ZD^K6!b0d3kwxd3kwxd3kwxd3kwxd3kwxd3kwxd3kw0' \
+         b'K0ZD^J^%m!0000!K0ZD^K6!b0d3kwxd3kwxd3kwxd3kwxd3kwxd3kwxd3kw0K0ZD^J^%m!0000!K0ZD^K6!b0d3kwxd3kwxd3kwxd3kwxd' \
+         b'3kwxd3kwxd3kw0K0ZD^J^%m!0000!K0ZD^K6!b0d3kwxd3kwxd3kwxd3kwxd3kwxd3kwxd3kw0K0ZD^J^%m!0000!K0ZD^K6!b0d3kwxd3' \
+         b'kwxd3kwxd3kwxd3kwxd3kwxd3kw0K0ZD^J^%m!0000!K0ZD^K6!b0d3kwxd3kwxd3kwxd3kwxd3kwxd3kwxd3kw0K0ZD^J^%m!0000!K0Z' \
+         b'D^K6!b0d3kwxd3kwxd3kwxd3kwxd3kwxd3kwxd3kw0K0ZD^J^%m!0000!K0ZD^K6!b0d3kwxd3kwxd3kwxd3kwxd3kwxd3kwxd3kw0K0ZD' \
+         b'^J^%m!0000!K0ZD^K6!b0d3kwxd3kwxd3kwxd3kwxd3kwxd3kwxd3kw0K0ZD^J^%m!0000!K0ZD^K0ZD^d3kwxd3kwxd3kwxd3kwxd3kwx' \
+         b'd3kwxK0ZD^K0ZD^J^%m!0000!K0ZD^K0ZD^K0ZD^K0bMQd3kwxd3kwxd3ioQK0ZD^K0ZD^K0ZD^J^%m!0000!K0ZD^K0ZD^K0ZD^K0bMQd' \
+         b'3kwxd3kwxd3ioQK0ZD^K0ZD^K0ZD^J^%m!0000!K0ZD^K0ZD^K0ZD^K0bMQd3kwxd3kwxd3ioQK0ZD^K0ZD^K0ZD^J^%m!0000!K0ZD^K0' \
+         b'ZD^K0ZD^K0bMQd3kwxd3kwxd3ioQK0ZD^K0ZD^K0ZD^J^%m!0000!K0ZD^K0ZD^K0ZD^K0bMQd3kwxd3kwxd3ioQK0ZD^K0ZD^K0ZD^J^%' \
+         b'm!0000!K0ZD^K0ZD^K0ZD^K0bMQd3kwxd3kwxd3ioQK0ZD^K0ZD^K0ZD^J^%m!|Ns9!K0ZD^K0ZD^K0ZD^K0bMQd3kwxd3kwxd3ioQK0ZD' \
+         b'^K0ZD^K0ZD^KL7v!|NsC0|NlNdK0ZD^K0ZD^K0bMQd3kwxd3kwxd3ioQK0ZD^K0ZD^K0g2d|NsC0|NsC0|NsC0|NsC0|NsC0|NnV;d3kwx' \
+         b'd3kwxd3pc;|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NnV;d3kwxd3kwxd3pc;|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|' \
+         b'NsC0|NnV;d3kwxd3kwxd3pc;|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NnV;d3kwxd3kwxd3pc;|NsC0|NsC0|NsC0|NsC0|N' \
+         b'sC0|NsC0|NsC0|NsC0|NnV;d3kwxd3kwxd3pc;|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|9N?Nd3kyN|NsC0|NsC0|Ns' \
+         b'C0|NsC0|NsC0'
+    p = b'000010RaI40RaI40RaI40RaI40RR9100000000000000000000000000000000000000000000000000000000000000000000000000000' \
+        b'00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000' \
+        b'00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000' \
+        b'0000000000000000000000000000000000000000000000960|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|Ns' \
+        b'C0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC00001>?Ej$b' \
+        b'|Df#upzQyk?Ej$b|Df#upzQyk?Ej$b|Df#upzQwu000000HEyupzQyk?Ej$b|Df#upzQyk?Ej$b|Df#upzQyk?Ej$b{{R300001>?Ej$b|D' \
+        b'f#upzQyk?Ej$b|Df#upzQyk?Ej$b|Df#upzQwu000000HEyupzQyk?Ej$b|Df#upzQyk?Ej$b|Df#upzQyk?Ej$b{{R300001>?Ej$b|Df#' \
+        b'upzQyk?Ej$b|Df#upzQyk?Ej$b|Df#upzQwu000000HEyupzQyk?Ej$b|Df#upzQyk?Ej$b|Df#upzQyk?Ej$b{{R300001>?Ej$b|Df#up' \
+        b'zQyk?Ej$b|Df#upzQyk?Ej$b|Df#upzQwu00960|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|Ns' \
+        b'C0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC00001>?Ej$b|Df#u00000' \
+        b'00000000000001>?Ej$b|Df#upzQwu000000HEyupzQxlOiWBnOiWBnOiWBnOiWBnOiWBnOiWCm?Ej$b{{R300001>?Ej$b|Df#upzQyk?E' \
+        b'j$b|Df#upzQyk?Ej$b|Df#upzQwu000000HEyupzQyk?Ej$b|Df#uHo_=2!YH8Z|Df#upzQyk?Ej$b{{R300001>?Ejt@7oHavo);IO?Ej$' \
+        b'b|Df#upzQyk?Ej$b|Df#upzQwu000000HEyupzQyk?Ej$b|Df#upzQyk?Ej$b|Df#upzQyk?Ej$b{{R300001>?Ej$b|Df#upzQyk?Ej$b|' \
+        b'7&Y&pzQyk?Ej$b|Df#upzQwu00960|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|Ns' \
+        b'C0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC00001>?Ej$b{{R30AHwP%!s-A303X8Y' \
+        b'AHwPY005xu|Df#upzQwu000000HEyuOiWCMhK7cQhK7cQOiWBnOiYG`hK7cQhK7brOiZBc{{R300001>?Ej$b|Df#upzQyi7Z;uv7oHavo)' \
+        b';IO?Ej$b|Df#upzQwu000000HEyupzQyk?Ej$b|2D!XHo_=2!YDSvD4^{BpzQyk?Ej$b{{R300001>?Ejt@7oHavo);JY|No%u|Df#upzQy' \
+        b'k?Ej$b|Df#upzQwu000000HEyupzQyk?Ej$b|Df#upzQyk?Ej$b|Df#upzQyk?Ej$b{{R300001>?Ej$b|Df#upzQyk?Eh<PYoP4^pzQyk?' \
+        b'Ej$b|Df#upzQwu00960|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|Ns' \
+        b'C0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC00001>?Ee4&03X8YAHwP%!s-A303X8YAHwP%!s-A3' \
+        b'0HEyupzQwu000000HEyuOiWCMhK7cQhK7cQOiWBnOiYG`hK7cQhK7brOiZBc{{R300001>?Ej$b|Df#upzQyi7Z;uv7oHavo);IO?Ej$b|D' \
+        b'f#upzQwu000000HEyupzQyk?Ef~xC^o_<Ho_=2!YDSvC^o_<pzQyk?Ej$b{{R300001>?Ejt@7oHav|NsC0|NovB7ohC_pzQyk?Ej$b|Df#' \
+        b'upzQwu000000HEyupzQyk?Ej$b|Df#upzQyk?Ej$b|Df#upzQyk?Ej$b{{R300001>?Ej$b|Df#upzQyk?Eh<PYoP4^pzQyk?Ej$b|Df#up' \
+        b'zQwu00960|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|Ns' \
+        b'C0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC00001>?Ee4&03X8YAHwP%!s-A303X8YAHwP%!s-A30HEyupzQwu' \
+        b'000000HEyuOiWBnOiWBnOiWBnOiWBnOiWBnOiWBnOiWBnOiZBc{{R300001>?Ej$b|Df#upzQyi7Z;uv7oHavo);IO?Ej$b|Df#upzQwu00' \
+        b'0000HEyupzQxP!YDSvC^o_<pzQyk?Ef~xC^o_<Ho_>N?Ej$b{{R300001>?Ej$b|NsC0|NsA<7Z;uv7ytkNpzQyk?Ej$b|Df#upzQwu0000' \
+        b'00HEyupzQyk?Ej$b|Df#upzQyk?Ej$b|Df#upzQyk?Ej$b{{R300001>?Ej$b|Df#upzQwu0000000000pzQyk?Ej$b|Df#upzQwu00960|' \
+        b'NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|Ns' \
+        b'C0sHmugg@ynB|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC00001>?Ee4&0000000000000000000000000000000HEyupzQwu000000HEyu' \
+        b'OiWBnOiWBnOiWBnOiWBnOiWBnOiWBnOiWBnOiZBc{{R300001>?Ej$b|Df#upzQyi7Z;uv7oHavo);IO?Ej$b|Df#upzQwu000000HEyupz' \
+        b'QxP!YDSvD4^{BpzQyk?Ej$b|2D!XHo_>N?Ej$b{{R300001>?Ej$b|Df#uo);IM7Z?Bk|NsC0o);IO?Ej$b|Df#upzQwu000000HEyupzQy' \
+        b'k?Ej$b|DG2Yo);IM7Z;uv7ohC_pzQyk?Ej$b{{R300001>?Ej$b|Df#u00030|Nj60000000001>?Ej$b|Df#upzQwu00960|NsC0|NsC0|' \
+        b'NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0g@uIx009' \
+        b'60|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC00001>?Ee4&03X8YAHwP%!s-A303X8YAHwP%!s-A30HEyupzQwu000000HEyuOiWCMhK7cQ' \
+        b'hK7cQOiWBnOiYG`hK7cQhK7brOiZBc{{R300001>?Ej$b|Df#upzQyi7Z;uv7oHavo);IO?Ej$b|Df#upzQwu000000HEyupzQyk?Ej$b|D' \
+        b'f#uHo_=2!YH8Z|Df#upzQyk?Ej$b{{R300001>?Ej$b|Df#upzQzu|NsC0|DG2Yo);JY|No%u|Df#upzQwu000000HEyupzQxeW<y10Lq%p' \
+        b'oMP@@qW<y10Lq%poMP@^w?Ej$b{{R300001>?Ej$b{{R30|Ns90000000000000000005xu|Df#upzQwu00960|NsC0|NsC0|NsC0|NsC0|' \
+        b'NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|Ns' \
+        b'C0|NsC0|NsC0|NsC0|NsC0|NsC00001>?Ee4&03X8YAHwP%!s-A303X8YAHwP%!s-A30HEyupzQwu000000HEyuOiWCMhK7cQhK7cQOiWBn' \
+        b'OiYG`hK7cQhK7brOiZBc{{R300001>?Ej$b|Df#upzQyi7Z;uv7oHavo);IO?Ej$b|Df#upzQwu000000HEyupzQyk?Ej$b|2D!XHo_=2!Y' \
+        b'DSvD4^{BpzQyk?Ej$b{{R300001>?Ej$b|Df#upzQyk?Ejt@7oHav|NsC0|No%u|Df#upzQwu000000HEyupzQxeW<y10Lq%poMP@@qW<y1' \
+        b'0Lq%poMP@^w?Ej$b{{R300001>?Ej$b{{R30|Ns90000000000000000005xu|Df#upzQwu00960|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|' \
+        b'NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|Ns' \
+        b'C0|NsC0|NsC0|NsC00001>?Ej$b{{R30AHwP%!s-A303X8YAHwPY005xu|Df#upzQwu000000HEyupzQxlOiYG`hK7cQOiWBnOiYG`hK7cQ' \
+        b'OiWCm?Ej$b{{R300001>?Ej$b|Df#upzQzAyiC!&Owqhd(Y#Ec?Ej$b|Df#upzQwu000000HEyupzQyk?Ef~xC^o_<Ho_=2!YDSvC^o_<pz' \
+        b'Qyk?Ej$b{{R300001>?Ej$b|Df#upzQyk?Ej$b|NsC0|Ns9?OiZBc|Df#upzQwu000000HEyupzQyk?Ej$b|Df#upzQyk?Ej$b|Df#upzQy' \
+        b'k?Ej$b{{R300001>?Ej$b{{R3000000000000000000000005xu|Df#upzQwu00960|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|' \
+        b'NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|Ns' \
+        b'C0|NsC00001>?Ej$b|Df#u0000000000000000001>?Ej$b|Df#upzQwu000000HEyupzQxlOiWBnOooPrOiWBnOiYG`hD=OMOiWCm?Ej$b' \
+        b'{{R300001>?Ej$b|Df#upzQzAyiC!&Owqhd(Y#Ec?Ej$b|Df#upzQwu000000HEyupzQxP!YDSvC^o_<pzQyk?Ef~xC^o_<Ho_>N?Ej$b{{' \
+        b'R300001>?Ej$b|Df#upzQyk?Ej$b|Df#upzQyk?Eg$mOrY%lpzQwu000000HEyupzQyk?Ej$b|Df#upzQyk?Ej$b|Df#upzQyk?Ej$b{{R3' \
+        b'00001>?Ej$b|Df#u0000000000000000001>?Ej$b|Df#upzQwu00960|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|' \
+        b'NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0000' \
+        b'1>?Ej$b|Df#upzQyk?Ej$b|Df#upzQyk?Ej$b|Df#upzQwu000000HEyupzQyk?Ej$b|4d9wOiWBnOiWBnOrY%lpzQyk?Ej$b{{R300001>' \
+        b'?Ej$b|Df#upzQyk?Ej$b|Df#upzQyk?Ej$b|Df#upzQwu000000HEyupzQxP!YDSvD4^{BpzQyk?Ej$b|2D!XHo_>N?Ej$b{{R300001>?E' \
+        b'j$b|Df#upzQyk?Ej$b|Df#upzQyk?Ej$b|4d9wpzQwu000000HEyupzQyk?Ej$b|Df#upzQyk?Ej$b|Df#upzQyk?Ej$b{{R300001>?Ej$' \
+        b'b|Df#upzQwu0000000000pzQyk?Ej$b|Df#upzQwu00960|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|' \
+        b'NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC00001>?Ej$b|Df' \
+        b'#upzQyk?Ej$b|Df#upzQyk?Ej$b|Df#upzQwu000000HEyupzQyk?Ej$b|Df#upzQyk?Ej$b|Df#upzQyk?Ej$b{{R300001>?Ej$b|Df#u' \
+        b'pzQyk?Ej$b|Df#upzQyk?Ej$b|Df#upzQwu000000HEyupzQyk?Ej$b|Df#upzQyk?Ej$b|Df#upzQyk?Ej$b{{R300001>?Ej$b|Df#upz' \
+        b'Qyk?Ej$b|Df#upzQyk?Ej$b|Df#upzQwu000000HEyupzQyk?Ej$b|Df#upzQyk?Ej$b|Df#upzQyk?Ej$b{{R300001>?Ej$b|Df#upzQy' \
+        b'k?Ej$b|Df#upzQyk?Ej$b|Df#upzQwu00960|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|' \
+        b'NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC000000000000000000000000' \
+        b'00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000' \
+        b'00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000' \
+        b'00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000' \
+        b'00000000000000000000000960|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|' \
+        b'NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0'
+
+    ot = base64.b85decode(ot)
+    ot = pygame.image.fromstring(ot, (16, 32), "RGB")
+    p = base64.b85decode(p)
+    p = pygame.image.fromstring(p, (140, 14), "RGB")
     ts = {}
     s.connect((IP, PORT))
 

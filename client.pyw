@@ -1,5 +1,5 @@
-# client.py V0.1.0
-# A valid copy of client.py can be found at https://raw.githubusercontent.com/actorpus/TankTrouble/main/client.py
+# client.pyw V0.1.0
+# A valid copy of client.pyw can be found at https://raw.githubusercontent.com/actorpus/TankTrouble/main/client.py
 
 import base64
 import hashlib

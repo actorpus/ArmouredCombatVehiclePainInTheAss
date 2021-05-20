@@ -202,7 +202,6 @@ def launch_client(settings):
         return display_map
 
     def draw_tank(_tank):
-        print(_tank)
         power = _tank[4]
 
         if power == 2:  # shield

@@ -1,4 +1,4 @@
-# client.pyw V0.1.1
+# client.pyw V0.1.2
 
 try:
     import base64

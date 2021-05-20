@@ -40,18 +40,22 @@ class get_setup:
         defaults = self.load_file(setting_file)
 
         self.widgets = [
-            (tk.Entry(self.root, width=18), "IP",
-             defaults["IP"] if "IP" in defaults.keys() else "0.0.0.0"
-             ),
-            (tk.Entry(self.root, width=18), "PORT",
-             defaults["PORT"] if "PORT" in defaults.keys() else "3956"
-             ),
-            (tk.Entry(self.root, width=18), "USERNAME",
-             defaults["USERNAME"] if "USERNAME" in defaults.keys() else "Noob321"
-             ),
-            (tk.Entry(self.root, width=18), "SERVER PASSWORD",
-             defaults["SERVER PASSWORD"] if "SERVER PASSWORD" in defaults.keys() else ""
-             ),
+            (
+                tk.Entry(self.root, width=18), "IP",
+                defaults["IP"] if "IP" in defaults.keys() else "0.0.0.0"
+            ),
+            (
+                tk.Entry(self.root, width=18), "PORT",
+                defaults["PORT"] if "PORT" in defaults.keys() else "3956"
+            ),
+            (
+                tk.Entry(self.root, width=18), "USERNAME",
+                defaults["USERNAME"] if "USERNAME" in defaults.keys() else "Noob321"
+            ),
+            (
+                tk.Entry(self.root, width=18), "SERVER PASSWORD",
+                defaults["SERVER PASSWORD"] if "SERVER PASSWORD" in defaults.keys() else ""
+            ),
         ]
 
         self.colour = (

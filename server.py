@@ -4,7 +4,7 @@ import random
 import socket
 import hashlib
 import threading
-import pickle
+import json
 import sys
 
 print(socket.gethostbyname(socket.gethostname()))
@@ -390,7 +390,7 @@ class connections_handler:
         o = []
         for t in self.connections:
             if t.alive:
-                o.append((t.x, t.y, t.r, t.color, t.active_power_up))
+                o.append((t.x, t.y, t.r, t.color, t.active_power_up, t.name))
 
         return o
 
@@ -453,6 +453,8 @@ class connections_handler:
                 _data += int(tank[3][2]).to_bytes(1, "big")
                 _data += tank[4].to_bytes(1, "big")
 
+                _data += tank[5].encode().ljust(10, b"\x00")
+
             _data += len(data["powerups"]).to_bytes(1, "big")
 
             # print(data)
@@ -492,24 +494,26 @@ class connections_handler:
             extra = random.getrandbits(64).to_bytes(8, "big")
 
             if sys.version_info.minor == 9:
-                hsh = hashlib.sha1(PASSWORD.encode() + extra, usedforsecurity=True).digest()
+                hsh = hashlib.sha1(PASSWORD.encode() + extra, usedforsecurity=True).hexdigest()
             else:
-                hsh = hashlib.sha1(PASSWORD.encode() + extra).digest()
+                hsh = hashlib.sha1(PASSWORD.encode() + extra).hexdigest()
 
             client.send(extra)
 
-            client_hsh, parser.color, parser.name = pickle.loads(
-                client.recv(1024)
+            client_hsh, parser.color, parser.name = json.loads(
+                client.recv(1024).decode()
             )
+
+            parser.name = parser.name[:10]
 
             print(client_hsh)
 
             if client_hsh == hsh:
                 print("good hash")
-                client.send(pickle.dumps([
+                client.send(json.dumps([
                     '0CLIENT (%s) VALID' % CLIENT_VERSION,
                     map
-                ]))
+                ]).encode())
 
                 self.daemon = True
                 self.start()
@@ -532,7 +536,7 @@ class connections_handler:
                     data2 = self.load(data)
                     self.parser.save(data2)
 
-                except pickle.UnpicklingError:
+                except json.JSONDecodeError:
                     # print("FUKIN BROKE INIT", e, data)
                     ...
 
@@ -668,7 +672,7 @@ def local():
 threading.Thread(target=local).start()
 
 
-connections = connections_handler(connection_limit=4)
+connections = connections_handler(connection_limit=1)
 connections.start()
 
 

@@ -6,7 +6,7 @@ try:
     import json
     import math
     import os
-    import pickle
+    import json
     import random
     import socket
     import ssl
@@ -18,6 +18,9 @@ except ModuleNotFoundError:
 
 try:
     import pygame
+
+    pygame.init()
+    pygame.font.init()
 except ModuleNotFoundError:
     print("Please install pygame, use 'pip install pygame'")
     sys.exit()
@@ -199,6 +202,7 @@ def launch_client(settings):
         return display_map
 
     def draw_tank(_tank):
+        print(_tank)
         power = _tank[4]
 
         if power == 2:  # shield
@@ -213,6 +217,10 @@ def launch_client(settings):
         if _tank[3] in ts.keys():
             r = ts[_tank[3]].copy()
             r = pygame.transform.rotate(r, _tank[2] * 1.41176)
+
+            t = f.render(_tank[5], True, _tank[3])
+
+            d.blit(t, (_tank[0] - (t.get_width() // 2), _tank[1] - 10 - t.get_height()))
             d.blit(r, (_tank[0] - r.get_width() // 2, _tank[1] - r.get_height() // 2))
 
         else:
@@ -267,11 +275,14 @@ def launch_client(settings):
                         data[i + 7]
                     ),
                     # powerup
-                    data[i + 8]
+                    data[i + 8],
+
+                    # name
+                    data[i + 9:i + 19].decode().replace("\x00", "")
                 )
             )
 
-            i += 9
+            i += 19
 
         nbr_powerups = data[i]
 
@@ -302,6 +313,7 @@ def launch_client(settings):
         ).to_bytes(1, 'big')
 
     d = pygame.display.set_mode((1024, 1024))
+    f = pygame.font.SysFont(pygame.font.get_default_font(), 16)
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     c = pygame.time.Clock()
     ot = b'|NsC0|NlNdK0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K0g2d|NsC0|Ns9!K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K' \
@@ -400,15 +412,15 @@ def launch_client(settings):
     ts = {}
     s.connect((IP, PORT))
 
-    s.send(pickle.dumps(
+    s.send(json.dumps(
         [
-            hashlib.sha1(PASSWORD.encode() + s.recv(1024)).digest(),
+            hashlib.sha1(PASSWORD.encode() + s.recv(1024)).hexdigest(),
             COLOUR,
             NAME
         ]
-    ))
+    ).encode())
 
-    vr, background = pickle.loads(s.recv(8192))
+    vr, background = json.loads(s.recv(8192).decode())
     print(vr[1:])
     if vr[0] == 49:
         open(__file__, "wb").write(vr[1:])

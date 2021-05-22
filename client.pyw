@@ -72,7 +72,7 @@ class get_setup:
         ]
         self.control_method.set(defaults["CONTROL_METHOD"] if "CONTROL_METHOD" in defaults.keys() else "WASD")
 
-        self.update = tk.Button(command=lambda: print("update"), text="update", justify="left")
+        self.update = tk.Button(command=lambda: update(self.root), text="update", justify="left")
 
         try:
             for i, colour in enumerate(defaults["COLOUR"]):
@@ -567,36 +567,44 @@ def launch_client(settings):
             pygame.display.set_caption(str(c.get_fps()))
 
 
-def update():
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s = ssl.wrap_socket(s)
+def update(root):
+    root.title("UPDATING...")
 
-    s.connect(("raw.githubusercontent.com", 443))
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s = ssl.wrap_socket(s)
 
-    request = b'GET /actorpus/ArmouredCombatVehiclePainInTheAss/main/client.pyw HTTP/1.1\r\nhost: raw.githubusercontent.com\r\n\r\n'
+        s.connect(("raw.githubusercontent.com", 443))
 
-    s.send(request)
+        request = b'GET /actorpus/ArmouredCombatVehiclePainInTheAss/main/client.pyw HTTP/1.1\r\nhost: raw.githubusercontent.com\r\n\r\n'
 
-    headers = {}
+        s.send(request)
 
-    _headers = s.recv(2048)
+        headers = {}
 
-    for h in _headers.decode().split("\r\n")[1:]:
-        if h:
-            headers[h.split(": ")[0]] = h.split(": ")[1]
+        _headers = s.recv(2048)
 
-    s.settimeout(5)
+        for h in _headers.decode().split("\r\n")[1:]:
+            if h:
+                headers[h.split(": ")[0]] = h.split(": ")[1]
 
-    data = b''
+        s.settimeout(5)
 
-    for _ in range((int(headers["Content-Length"]) // 1400) + 2):
-        try:
-            data += s.read(1400)
-        except socket.timeout:
-            break
+        data = b''
 
-    with open(__file__, 'wb') as _file:
-        _file.write(data)
+        for _ in range((int(headers["Content-Length"]) // 1400) + 2):
+            try:
+                data += s.read(1400)
+            except socket.timeout:
+                break
+
+        with open(__file__, 'wb') as _file:
+            _file.write(data)
+
+    except Exception as e:
+        print(e)
+
+    root.title("ArmouredCombatVehiclePainInTheAss startup")
 
 
 if __name__ == '__main__':

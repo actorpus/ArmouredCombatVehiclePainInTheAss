@@ -29,7 +29,7 @@ except ModuleNotFoundError:
 class get_setup:
     def __init__(self, startup, setting_file=".client_settings.json"):
         self.root = tk.Tk()
-        self.root.geometry("300x128")
+        self.root.geometry("300x130")
         self.root.title("ArmouredCombatVehiclePainInTheAss startup")
         self.root.resizable(False, False)
 
@@ -64,10 +64,15 @@ class get_setup:
             tk.Entry(self.root, width=6)
         )
 
-        self.arrow = tk.IntVar()
-        self.arrow.set(defaults["USE_ARROW_KEYS"] if "USE_ARROW_KEYS" in defaults.keys() else 0)
+        self.control_method = tk.StringVar()
+        self.control_method_options = [
+            "WASD",
+            "arrow",
+            "controller"
+        ]
+        self.control_method.set(defaults["CONTROL_METHOD"] if "CONTROL_METHOD" in defaults.keys() else "WASD")
 
-        self.update = tk.Button(command=update, text="update", justify="left")
+        self.update = tk.Button(command=lambda: print("update"), text="update", justify="left")
 
         try:
             for i, colour in enumerate(defaults["COLOUR"]):
@@ -105,7 +110,7 @@ class get_setup:
             int(self.colour[2].get())
         ]
 
-        defaults["USE_ARROW_KEYS"] = bool(self.arrow.get())
+        defaults["CONTROL_METHOD"] = self.control_method.get()
 
         os.system("attrib -h " + self.setting_file)
 
@@ -134,9 +139,90 @@ class get_setup:
         self.STARTUP.place(relx=0.5, rely=1, anchor="s")
         self.update.place(relx=0, rely=1, anchor="sw")
 
-        tk.Checkbutton(self.root, text='Use Arrow Keys', variable=self.arrow).place(relx=1, y=100, anchor="ne")
+        tk.OptionMenu(self.root, self.control_method, *self.control_method_options).place(relx=1, rely=1, anchor="se")
 
         self.root.mainloop()
+
+
+class Controller:
+    def __init__(self, clock, display):
+        pygame.joystick.init()
+        font = pygame.font.SysFont(pygame.font.get_default_font(), 50)
+
+        if pygame.joystick.get_count() != 1:
+            print("ERROR could not identify single controller, (%i controllers detected)" % pygame.joystick.get_count())
+            sys.exit()
+
+        self.controller = pygame.joystick.Joystick(0)
+
+        display.fill((0, 0, 0))
+        display.blit(font.render("forward/backward", True, (255, 255, 255)), (0, 0))
+        pygame.display.update()
+
+        for _ in range(20):
+            clock.tick(10)
+            pygame.event.get()
+
+        self.movement = max(
+            [
+                (self.controller.get_axis(i), i) for i in range(self.controller.get_numaxes())
+            ],
+            key=lambda _: abs(_[0])
+        )[1]
+
+        display.fill((0, 0, 0))
+        display.blit(font.render("rotation", True, (255, 255, 255)), (0, 0))
+        pygame.display.update()
+
+        for _ in range(20):
+            clock.tick(10)
+            pygame.event.get()
+
+        self.rotation = max(
+            [
+                (self.controller.get_axis(i), i) for i in range(self.controller.get_numaxes())
+            ],
+            key=lambda _: abs(_[0])
+        )[1]
+
+        display.fill((0, 0, 0))
+        display.blit(font.render("fire", True, (255, 255, 255)), (0, 0))
+        pygame.display.update()
+
+        for _ in range(20):
+            clock.tick(10)
+            pygame.event.get()
+
+        self.fire = sum(
+            [
+                 i if self.controller.get_button(i) else 0 for i in range(self.controller.get_numbuttons())
+            ]
+        )
+
+    def get_forward(self):
+        return self.controller.get_axis(
+            self.movement
+        ) < -0.2
+
+    def get_backward(self):
+        return self.controller.get_axis(
+            self.movement
+        ) > 0.2
+
+    def get_right(self):
+        return self.controller.get_axis(
+            self.rotation
+        ) > 0.2
+
+    def get_left(self):
+        return self.controller.get_axis(
+            self.rotation
+        ) < -0.2
+
+    def get_fire(self):
+        return self.controller.get_button(
+            self.fire
+        )
 
 
 def launch_client(settings):
@@ -144,7 +230,7 @@ def launch_client(settings):
     COLOUR = tuple(settings["COLOUR"])
     NAME = str(settings["USERNAME"])
     PORT = int(settings["PORT"])
-    WASD = not bool(settings["USE_ARROW_KEYS"])
+    CTRL = str(settings["CONTROL_METHOD"])
     PASSWORD = str(settings["SERVER PASSWORD"])
 
     def gen_map(m):
@@ -412,6 +498,8 @@ def launch_client(settings):
     ot = pygame.image.fromstring(ot, (16, 32), "RGB")
     p = base64.b85decode(p)
     p = pygame.image.fromstring(p, (140, 14), "RGB")
+    if CTRL == "controller":
+        controller = Controller(c, d)
     ts = {}
     s.connect((IP, PORT))
 
@@ -432,14 +520,31 @@ def launch_client(settings):
 
         while not any([_.type == pygame.QUIT for _ in pygame.event.get()]):
             keys = pygame.key.get_pressed()
-            s.send(dump(
-                w=keys[pygame.K_w] if WASD else keys[pygame.K_UP],
-                a=keys[pygame.K_a] if WASD else keys[pygame.K_LEFT],
-                s=keys[pygame.K_s] if WASD else keys[pygame.K_DOWN],
-                d=keys[pygame.K_d] if WASD else keys[pygame.K_RIGHT],
-                SPACE=keys[pygame.K_SPACE]
-            ))
 
+            if CTRL == "WASD":
+                s.send(dump(
+                    w=keys[pygame.K_w],
+                    a=keys[pygame.K_a],
+                    s=keys[pygame.K_s],
+                    d=keys[pygame.K_d],
+                    SPACE=keys[pygame.K_SPACE]
+                ))
+            elif CTRL == "arrow":
+                s.send(dump(
+                    w=keys[pygame.K_UP],
+                    a=keys[pygame.K_LEFT],
+                    s=keys[pygame.K_DOWN],
+                    d=keys[pygame.K_RIGHT],
+                    SPACE=keys[pygame.K_SPACE]
+                ))
+            elif CTRL == "controller":
+                s.send(dump(
+                    w=controller.get_forward(),
+                    a=controller.get_left(),
+                    s=controller.get_backward(),
+                    d=controller.get_right(),
+                    SPACE=controller.get_fire()
+                ))
             try:
                 data = load(s.recv(65536))
             except ConnectionResetError:

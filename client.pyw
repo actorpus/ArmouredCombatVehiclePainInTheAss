@@ -199,6 +199,13 @@ class Controller:
             ]
         )
 
+        display.fill((0, 0, 0))
+        pygame.display.update()
+
+        for _ in range(20):
+            clock.tick(10)
+            pygame.event.get()
+
     def get_forward(self):
         return self.controller.get_axis(
             self.movement

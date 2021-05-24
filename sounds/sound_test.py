@@ -25,6 +25,5 @@ while running:
             if e.key == pygame.K_1:
                 sound1.play()
 
-
     pygame.display.update()
     clock.tick(30)

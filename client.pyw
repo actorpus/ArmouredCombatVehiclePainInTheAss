@@ -207,24 +207,28 @@ class Controller:
             pygame.event.get()
 
     def get_forward(self):
-        return self.controller.get_axis(
-            self.movement
-        ) < -0.2
+        if self.controller.get_axis(self.movement) < 0:
+            return abs(self.controller.get_axis(self.movement))
+
+        return 0
 
     def get_backward(self):
-        return self.controller.get_axis(
-            self.movement
-        ) > 0.2
+        if self.controller.get_axis(self.movement) > 0:
+            return abs(self.controller.get_axis(self.movement))
+
+        return 0
 
     def get_right(self):
-        return self.controller.get_axis(
-            self.rotation
-        ) > 0.2
+        if self.controller.get_axis(self.rotation) > 0:
+            return abs(self.controller.get_axis(self.rotation))
+
+        return 0
 
     def get_left(self):
-        return self.controller.get_axis(
-            self.rotation
-        ) < -0.2
+        if self.controller.get_axis(self.rotation) < 0:
+            return abs(self.controller.get_axis(self.rotation))
+
+        return 0
 
     def get_fire(self):
         return self.controller.get_button(
@@ -400,13 +404,7 @@ def launch_client(settings):
         return _data
 
     def dump(w, a, s, d, SPACE):
-        return (
-                (w << 0) +
-                (a << 1) +
-                (s << 2) +
-                (d << 3) +
-                (SPACE << 4)
-        ).to_bytes(1, 'big')
+        return w.to_bytes(1, 'big') + a.to_bytes(1, 'big') + s.to_bytes(1, 'big') + d.to_bytes(1, 'big') + SPACE.to_bytes(1, 'big')
 
     d = pygame.display.set_mode((1024, 1024))
     f = pygame.font.SysFont(pygame.font.get_default_font(), 16)
@@ -530,26 +528,26 @@ def launch_client(settings):
 
             if CTRL == "WASD":
                 s.send(dump(
-                    w=keys[pygame.K_w],
-                    a=keys[pygame.K_a],
-                    s=keys[pygame.K_s],
-                    d=keys[pygame.K_d],
+                    w=keys[pygame.K_w] * 255,
+                    a=keys[pygame.K_a] * 255,
+                    s=keys[pygame.K_s] * 255,
+                    d=keys[pygame.K_d] * 255,
                     SPACE=keys[pygame.K_SPACE]
                 ))
             elif CTRL == "arrow":
                 s.send(dump(
-                    w=keys[pygame.K_UP],
-                    a=keys[pygame.K_LEFT],
-                    s=keys[pygame.K_DOWN],
-                    d=keys[pygame.K_RIGHT],
+                    w=keys[pygame.K_UP] * 255,
+                    a=keys[pygame.K_LEFT] * 255,
+                    s=keys[pygame.K_DOWN] * 255,
+                    d=keys[pygame.K_RIGHT] * 255,
                     SPACE=keys[pygame.K_SPACE]
                 ))
             elif CTRL == "controller":
                 s.send(dump(
-                    w=controller.get_forward(),
-                    a=controller.get_left(),
-                    s=controller.get_backward(),
-                    d=controller.get_right(),
+                    w=int(controller.get_forward() * 255),
+                    a=int(controller.get_left() * 255),
+                    s=int(controller.get_backward() * 255),
+                    d=int(controller.get_right() * 255),
                     SPACE=controller.get_fire()
                 ))
             try:

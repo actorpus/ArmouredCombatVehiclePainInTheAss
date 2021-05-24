@@ -320,14 +320,14 @@ class Tank:
 
             # update tank
             if self.data["a"]:
-                self.r += fps * 3 * off  # 2
+                self.r += fps * 3 * off * (self.data["a"] / 255)  # 2
 
             if self.data["d"]:
-                self.r -= fps * 3 * off  # 2
+                self.r -= fps * 3 * off * (self.data["d"] / 255)  # 2
 
             if self.data["w"]:
-                nx = self.x + math.sin(self.r) * fps * 100 * off  # 50
-                ny = self.y + math.cos(self.r) * fps * 100 * off  # 50
+                nx = self.x + math.sin(self.r) * fps * 100 * off * (self.data["w"] / 255)  # 50
+                ny = self.y + math.cos(self.r) * fps * 100 * off * (self.data["w"] / 255)  # 50
 
                 if nx < 1024 and ny < 1024:
                     if background.get_at((int(nx), int(ny))) == (0, 0, 0):
@@ -337,8 +337,8 @@ class Tank:
                 self.y = ny
 
             if self.data["s"]:
-                nx = self.x - math.sin(self.r) * fps * 100 * off  # 50
-                ny = self.y - math.cos(self.r) * fps * 100 * off  # 50
+                nx = self.x - math.sin(self.r) * fps * 100 * off * (self.data["s"] / 255)  # 50
+                ny = self.y - math.cos(self.r) * fps * 100 * off * (self.data["s"] / 255)  # 50
 
                 if background.get_at((int(nx), int(ny))) == (0, 0, 0):
                     return
@@ -474,14 +474,23 @@ class connections_handler:
 
         @staticmethod
         def load(data):
-            data = int.from_bytes(data, "big")
+            # data = int.from_bytes(data, "big")
+            #
+            # return {
+            #     "w": (data >> 0) % 2,
+            #     "a": (data >> 1) % 2,
+            #     "s": (data >> 2) % 2,
+            #     "d": (data >> 3) % 2,
+            #     "SPACE": (data >> 4) % 2
+            # }
+            print(data)
 
             return {
-                "w": (data >> 0) % 2,
-                "a": (data >> 1) % 2,
-                "s": (data >> 2) % 2,
-                "d": (data >> 3) % 2,
-                "SPACE": (data >> 4) % 2
+                "w": data[0],
+                "a": data[1],
+                "s": data[2],
+                "d": data[3],
+                "SPACE": data[4]
             }
 
         def __init__(self, parser, client, parent):
@@ -665,14 +674,21 @@ def local():
     while True:
         try:
             i = input("> ")
-            exec(i)
+
+            if i == "reset":
+                connections.reset_all()
+                bullets.reset()
+                connections.round_check()
+            else:
+                print(exec(i))
         except Exception as e:
             print(e)
+
 
 threading.Thread(target=local).start()
 
 
-connections = connections_handler(connection_limit=1)
+connections = connections_handler(connection_limit=2)
 connections.start()
 
 

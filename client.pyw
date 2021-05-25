@@ -144,6 +144,104 @@ class get_setup:
         self.root.mainloop()
 
 
+class Menu:
+    def __init__(self, w=768, h=432):
+        self.w, self.h = w, h
+
+        self.background = pygame.surface.Surface((w, h)).convert_alpha()
+        self.background.fill((0, 0, 0, 0))
+
+        pygame.draw.rect(
+            self.background,
+            (0, 0, 0, 200),
+            (0, 0, w, h),
+            border_radius=16
+        )
+
+        pygame.draw.rect(
+            self.background,
+            (0, 0, 0, 255),
+            (0, 0, w, h),
+            8,
+            border_radius=16
+        )
+        pygame.draw.rect(
+            self.background,
+            (0, 0, 0, 255),
+            (0, 0, w, 64),
+            8,
+            border_radius=16
+        )
+        pygame.draw.rect(
+            self.background,
+            (0, 0, 0, 255),
+            (0, 56, w // 2, h - 56),
+            8,
+            border_radius=16
+        )
+        pygame.draw.rect(
+            self.background,
+            (0, 0, 0, 255),
+            (w // 2 - 8, 56, w // 2 + 8, h - 56),
+            8,
+            border_radius=16
+        )
+
+        self.font_large = pygame.font.Font(
+            pygame.font.get_default_font(),
+            32
+        )
+        self.font_small = pygame.font.Font(
+            pygame.font.get_default_font(),
+            16
+        )
+
+        self.background.blit(
+            self.font_large.render(
+                "ArmouredCombatVehiclePainInTheAss",
+                True,
+                (255, 255, 255)
+            ),
+            (16, 16)
+        )
+
+    def gen(self, un, kf):
+        background = self.background.copy()
+
+        for i, text in enumerate(un):
+            background.blit(
+                self.font_small.render(
+                    "• " + text,
+                    True,
+                    (255, 255, 255)
+                ),
+                (16, 72 + (20 * i))
+            )
+
+        for i, text in enumerate(kf):
+            background.blit(
+                self.font_small.render(
+                    text,
+                    True,
+                    (255, 255, 255)
+                ),
+                (8 + (self.w // 2), 72 + (20 * i))
+            )
+
+        return background
+
+    def draw(self, on, un, kf):
+        m = self.gen(un, kf)
+
+        on.blit(
+            m,
+            (
+                (on.get_width() - m.get_width()) / 2,
+                (on.get_height() - m.get_height()) / 2
+            )
+        )
+
+
 class Controller:
     def __init__(self, clock, display):
         pygame.joystick.init()
@@ -306,10 +404,10 @@ def launch_client(settings):
         power = _tank[4]
 
         if power == 2:  # shield
-            pygame.draw.circle(d, (0, 0, 255), _tank[:2], 20, 2)
+            pygame.draw.circle(display, (0, 0, 255), _tank[:2], 20, 2)
 
         if power == 1:  # sniper
-            pygame.draw.line(d, (255, 0, 0), _tank[:2], (
+            pygame.draw.line(display, (255, 0, 0), _tank[:2], (
                 int(_tank[0] + math.sin(_tank[2] * 0.02463994238) * 1449),
                 int(_tank[1] + math.cos(_tank[2] * 0.02463994238) * 1449)
             ))
@@ -318,19 +416,19 @@ def launch_client(settings):
             r = ts[_tank[3]].copy()
             r = pygame.transform.rotate(r, _tank[2] * 1.41176)
 
-            t = f.render(_tank[5], True, _tank[3])
+            t = font.render(_tank[5], True, _tank[3])
 
-            d.blit(t, (_tank[0] - (t.get_width() // 2), _tank[1] - 10 - t.get_height()))
-            d.blit(r, (_tank[0] - r.get_width() // 2, _tank[1] - r.get_height() // 2))
+            display.blit(t, (_tank[0] - (t.get_width() // 2), _tank[1] - 10 - t.get_height()))
+            display.blit(r, (_tank[0] - r.get_width() // 2, _tank[1] - r.get_height() // 2))
 
         else:
-            new_image = pygame.surface.Surface((ot.get_width(), ot.get_height())).convert_alpha()
+            new_image = pygame.surface.Surface((original_tank.get_width(), original_tank.get_height())).convert_alpha()
 
-            for x in range(ot.get_width()):
-                for y in range(ot.get_height()):
-                    p = ot.get_at((x, y))
+            for x in range(original_tank.get_width()):
+                for y in range(original_tank.get_height()):
+                    p = original_tank.get_at((x, y))
 
-                    if ot.get_at((x, y))[0] == 255:
+                    if original_tank.get_at((x, y))[0] == 255:
                         new_image.set_at((x, y), (0, 0, 0, 0))
                     else:
                         new_image.set_at((x, y), (_tank[3][0] * p[0] // 255, _tank[3][1] * p[0] // 255, _tank[3][2] * p[0] // 255, 255))
@@ -338,10 +436,10 @@ def launch_client(settings):
             ts[_tank[3]] = new_image
 
     def draw_bullet(_bullet):
-        pygame.draw.circle(d, (0, 0, 0), _bullet, 2)
+        pygame.draw.circle(display, (0, 0, 0), _bullet, 2)
 
-    def draw_powerup(_powerup):
-        d.blit(p, (_powerup[0] + 1, _powerup[1] + 1), ((14 * (_powerup[2] - 1)), 0, 14, 14))
+    def draw_power_up(_powerup):
+        display.blit(power_ups, (_powerup[0] + 1, _powerup[1] + 1), ((14 * (_powerup[2] - 1)), 0, 14, 14))
 
     def load(data):
         if data[0] == 85:
@@ -402,18 +500,21 @@ def launch_client(settings):
 
                 i += 5
 
-            return _data
+            return "U", _data
 
-        print(data)
+        elif data[0] == 87:
+            return data.decode()
 
     def dump(w, a, s, d, SPACE):
         return w.to_bytes(1, 'big') + a.to_bytes(1, 'big') + s.to_bytes(1, 'big') + d.to_bytes(1, 'big') + SPACE.to_bytes(1, 'big')
 
-    d = pygame.display.set_mode((1024, 1024))
-    f = pygame.font.SysFont(pygame.font.get_default_font(), 16)
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    c = pygame.time.Clock()
-    ot = b'|NsC0|NlNdK0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K0g2d|NsC0|Ns9!K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K' \
+    display = pygame.display.set_mode((1024, 1024))
+    font = pygame.font.SysFont(pygame.font.get_default_font(), 16)
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    menu = Menu()
+    win_feed = []
+    clock = pygame.time.Clock()
+    original_tank = b'|NsC0|NlNdK0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K0g2d|NsC0|Ns9!K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K' \
          b'0ZD^K0ZD^KL7v!0000!K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^K0ZD^J^%m!0000!K0ZD^K0ZD^d3kwxd3kwxd3kwxd3' \
          b'kwxd3kwxd3kwxK0ZD^K0ZD^J^%m!0000!K0ZD^K6!b0d3kwxd3kwxd3kwxd3kwxd3kwxd3kwxd3kw0K0ZD^J^%m!0000!K0ZD^K6!b0d3k' \
          b'wxd3kwxd3kwxd3kwxd3kwxd3kwxd3kw0K0ZD^J^%m!0000!K0ZD^K6!b0d3kwxd3kwxd3kwxd3kwxd3kwxd3kwxd3kw0K0ZD^J^%m!0000' \
@@ -432,7 +533,7 @@ def launch_client(settings):
          b'NsC0|NnV;d3kwxd3kwxd3pc;|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NnV;d3kwxd3kwxd3pc;|NsC0|NsC0|NsC0|NsC0|N' \
          b'sC0|NsC0|NsC0|NsC0|NnV;d3kwxd3kwxd3pc;|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|9N?Nd3kyN|NsC0|NsC0|Ns' \
          b'C0|NsC0|NsC0'
-    p = b'000010RaI40RaI40RaI40RaI40RR9100000000000000000000000000000000000000000000000000000000000000000000000000000' \
+    power_ups = b'000010RaI40RaI40RaI40RaI40RR9100000000000000000000000000000000000000000000000000000000000000000000000000000' \
         b'00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000' \
         b'00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000' \
         b'0000000000000000000000000000000000000000000000960|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|Ns' \
@@ -502,24 +603,24 @@ def launch_client(settings):
         b'00000000000000000000000960|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|' \
         b'NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0|NsC0'
 
-    ot = base64.b85decode(ot)
-    ot = pygame.image.fromstring(ot, (16, 32), "RGB")
-    p = base64.b85decode(p)
-    p = pygame.image.fromstring(p, (140, 14), "RGB")
+    original_tank = base64.b85decode(original_tank)
+    original_tank = pygame.image.fromstring(original_tank, (16, 32), "RGB")
+    power_ups = base64.b85decode(power_ups)
+    power_ups = pygame.image.fromstring(power_ups, (140, 14), "RGB")
     if CTRL == "controller":
-        controller = Controller(c, d)
+        controller = Controller(clock, display)
     ts = {}
-    s.connect((IP, PORT))
+    client.connect((IP, PORT))
 
-    s.send(json.dumps(
+    client.send(json.dumps(
         [
-            hashlib.sha1(PASSWORD.encode() + s.recv(1024)).hexdigest(),
+            hashlib.sha1(PASSWORD.encode() + client.recv(1024)).hexdigest(),
             COLOUR,
             NAME
         ]
     ).encode())
 
-    vr, background = json.loads(s.recv(8192).decode())
+    vr, background = json.loads(client.recv(8192).decode())
     print(vr[1:])
     if vr[0] == 49:
         open(__file__, "wb").write(vr[1:])
@@ -530,7 +631,7 @@ def launch_client(settings):
             keys = pygame.key.get_pressed()
 
             if CTRL == "WASD":
-                s.send(dump(
+                client.send(dump(
                     w=keys[pygame.K_w] * 255,
                     a=keys[pygame.K_a] * 255,
                     s=keys[pygame.K_s] * 255,
@@ -538,7 +639,7 @@ def launch_client(settings):
                     SPACE=keys[pygame.K_SPACE]
                 ))
             elif CTRL == "arrow":
-                s.send(dump(
+                client.send(dump(
                     w=keys[pygame.K_UP] * 255,
                     a=keys[pygame.K_LEFT] * 255,
                     s=keys[pygame.K_DOWN] * 255,
@@ -546,7 +647,7 @@ def launch_client(settings):
                     SPACE=keys[pygame.K_SPACE]
                 ))
             elif CTRL == "controller":
-                s.send(dump(
+                client.send(dump(
                     w=int(controller.get_forward() * 255),
                     a=int(controller.get_left() * 255),
                     s=int(controller.get_backward() * 255),
@@ -554,26 +655,41 @@ def launch_client(settings):
                     SPACE=controller.get_fire()
                 ))
             try:
-                data = load(s.recv(65536))
+                data = load(client.recv(65536))
             except ConnectionResetError:
                 print("server unexpectedly closed connect")
                 return
 
             if data is not None:
-                d.blit(background, (0, 0))
+                display.blit(background, (0, 0))
 
-                for bullet in data["bullets"]:
-                    draw_bullet(bullet)
+                if data[0] == "U":
+                    data = data[1]
 
-                for tank in data["tanks"]:
-                    draw_tank(tank)
+                    for bullet in data["bullets"]:
+                        draw_bullet(bullet)
 
-                for powerup in data["powerups"]:
-                    draw_powerup(powerup)
+                    for tank in data["tanks"]:
+                        draw_tank(tank)
+
+                    for power_up in data["powerups"]:
+                        draw_power_up(power_up)
+
+                    if keys[pygame.K_TAB]:
+                        menu.draw(
+                            display,
+                            [
+                                tank[5] for tank in data["tanks"]
+                            ],
+                            win_feed
+                        )
+
+                elif data[0] == "W":
+                    win_feed.append(data[1:] + " won!")
 
                 pygame.display.update()
-                c.tick()
-                pygame.display.set_caption(str(c.get_fps()))
+                clock.tick()
+                pygame.display.set_caption(str(clock.get_fps()))
 
 
 def update(root):

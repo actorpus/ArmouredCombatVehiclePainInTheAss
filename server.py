@@ -272,13 +272,14 @@ class PowerUpHandler:
 
 
 class Tank:
-    def __init__(self, inputs=(pygame.K_w, pygame.K_a, pygame.K_s, pygame.K_d, pygame.K_SPACE), default=(100, 100, 0)):
+    def __init__(self, master_connection, inputs=(pygame.K_w, pygame.K_a, pygame.K_s, pygame.K_d, pygame.K_SPACE), default=(100, 100, 0)):
         self.x, self.y, self.r = default
         self.default = default
         self.color = 0, 0, 0
         self.alive = True
         self.data = {"w": False, "a": False, "s": False, "d": False, "SPACE": False}
         self.letters = inputs
+        self.master_connection = master_connection
         self.name = ""
         self.shoot_countdown = 0
         self.active_power_up = 0
@@ -383,6 +384,12 @@ class connections_handler:
 
         self.connections = []
 
+    def send_win(self, win):
+        for con in self.connections:
+            con.master_connection.send(
+                b'W' + win.name[:10].encode()
+            )
+
     def len_alive(self):
         return sum([_.alive for _ in self.connections])
 
@@ -402,7 +409,7 @@ class connections_handler:
 
             pos = self.START_POSS[len(self.connections)]
 
-            tank = Tank(default=pos)
+            tank = Tank(client, default=pos)
 
             self.connections.append(tank)
             self.connection_handler(tank, client, self)
@@ -428,7 +435,7 @@ class connections_handler:
     class connection_handler(threading.Thread):
         @staticmethod
         def dump(data: dict):
-            _data = b''
+            _data = b'U'
 
             _data += len(data["bullets"]).to_bytes(1, "big")
 
@@ -676,6 +683,8 @@ def local():
             i = input("> ")
 
             if i == "reset":
+                connections.send_win(connections.connections[0])
+
                 connections.reset_all()
                 bullets.reset()
                 connections.round_check()
@@ -688,7 +697,7 @@ def local():
 threading.Thread(target=local).start()
 
 
-connections = connections_handler(connection_limit=2)
+connections = connections_handler(connection_limit=1)
 connections.start()
 
 
@@ -718,14 +727,16 @@ while True:
 
     if len(connections.connections) > 1:
         if connections.len_alive() == 1:
-            winner = "no one"
+            winner = connections.connections[0]
 
             for _ in connections.connections:
                 if _.alive:
-                    winner = _.name
+                    winner = _
                     break
 
-            print(winner, "won!")
+            print(winner.name, "won!")
+
+            connections.send_win(winner)
 
             connections.reset_all()
             bullets.reset()

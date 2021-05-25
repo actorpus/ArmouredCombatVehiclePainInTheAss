@@ -344,64 +344,67 @@ def launch_client(settings):
         d.blit(p, (_powerup[0] + 1, _powerup[1] + 1), ((14 * (_powerup[2] - 1)), 0, 14, 14))
 
     def load(data):
-        i = 0
+        if data[0] == 85:
+            i = 1
 
-        _data = {"bullets": [], "tanks": [], "powerups": []}
+            _data = {"bullets": [], "tanks": [], "powerups": []}
 
-        nbr_bullets = data[i]
+            nbr_bullets = data[i]
 
-        i += 1
+            i += 1
 
-        for _ in range(nbr_bullets):
-            _data["bullets"].append((int.from_bytes(data[i:i + 2], "big"), int.from_bytes(data[i + 2:i + 4], "big")))
-            i += 4
+            for _ in range(nbr_bullets):
+                _data["bullets"].append((int.from_bytes(data[i:i + 2], "big"), int.from_bytes(data[i + 2:i + 4], "big")))
+                i += 4
 
-        nbr_powerups = data[i]
+            nbr_powerups = data[i]
 
-        i += 1
+            i += 1
 
-        for _ in range(nbr_powerups):
-            _data["tanks"].append(
-                (
-                    # x, y
-                    int.from_bytes(data[i:i + 2], "big"),
-                    int.from_bytes(data[i + 2:i + 4], "big"),
-                    # r
-                    data[i + 4],
-                    # r, g, b
+            for _ in range(nbr_powerups):
+                _data["tanks"].append(
                     (
-                        data[i + 5],
-                        data[i + 6],
-                        data[i + 7]
-                    ),
-                    # powerup
-                    data[i + 8],
+                        # x, y
+                        int.from_bytes(data[i:i + 2], "big"),
+                        int.from_bytes(data[i + 2:i + 4], "big"),
+                        # r
+                        data[i + 4],
+                        # r, g, b
+                        (
+                            data[i + 5],
+                            data[i + 6],
+                            data[i + 7]
+                        ),
+                        # powerup
+                        data[i + 8],
 
-                    # name
-                    data[i + 9:i + 19].decode().replace("\x00", "")
+                        # name
+                        data[i + 9:i + 19].decode().replace("\x00", "")
+                    )
                 )
-            )
 
-            i += 19
+                i += 19
 
-        nbr_powerups = data[i]
+            nbr_powerups = data[i]
 
-        i += 1
+            i += 1
 
-        for _ in range(nbr_powerups):
-            _data["powerups"].append(
-                (
-                    # x, y
-                    int.from_bytes(data[i: i + 2], "big"),
-                    int.from_bytes(data[i + 2: i + 4], "big"),
-                    # type
-                    data[i + 4]
+            for _ in range(nbr_powerups):
+                _data["powerups"].append(
+                    (
+                        # x, y
+                        int.from_bytes(data[i: i + 2], "big"),
+                        int.from_bytes(data[i + 2: i + 4], "big"),
+                        # type
+                        data[i + 4]
+                    )
                 )
-            )
 
-            i += 5
+                i += 5
 
-        return _data
+            return _data
+
+        print(data)
 
     def dump(w, a, s, d, SPACE):
         return w.to_bytes(1, 'big') + a.to_bytes(1, 'big') + s.to_bytes(1, 'big') + d.to_bytes(1, 'big') + SPACE.to_bytes(1, 'big')
@@ -556,20 +559,21 @@ def launch_client(settings):
                 print("server unexpectedly closed connect")
                 return
 
-            d.blit(background, (0, 0))
+            if data is not None:
+                d.blit(background, (0, 0))
 
-            for bullet in data["bullets"]:
-                draw_bullet(bullet)
+                for bullet in data["bullets"]:
+                    draw_bullet(bullet)
 
-            for tank in data["tanks"]:
-                draw_tank(tank)
+                for tank in data["tanks"]:
+                    draw_tank(tank)
 
-            for powerup in data["powerups"]:
-                draw_powerup(powerup)
+                for powerup in data["powerups"]:
+                    draw_powerup(powerup)
 
-            pygame.display.update()
-            c.tick()
-            pygame.display.set_caption(str(c.get_fps()))
+                pygame.display.update()
+                c.tick()
+                pygame.display.set_caption(str(c.get_fps()))
 
 
 def update(root):

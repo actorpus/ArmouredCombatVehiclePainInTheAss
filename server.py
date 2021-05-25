@@ -483,7 +483,7 @@ class connections_handler:
             #     "d": (data >> 3) % 2,
             #     "SPACE": (data >> 4) % 2
             # }
-            print(data)
+            # print(data)
 
             return {
                 "w": data[0],

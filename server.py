@@ -6,6 +6,7 @@ import hashlib
 import threading
 import json
 import sys
+import time
 
 print(socket.gethostbyname(socket.gethostname()))
 
@@ -393,6 +394,9 @@ class connections_handler:
     def len_alive(self):
         return sum([_.alive for _ in self.connections])
 
+    def flush_all(self):
+        ...
+
     def dump_all(self):
         o = []
         for t in self.connections:
@@ -688,6 +692,9 @@ def local():
                 connections.reset_all()
                 bullets.reset()
                 connections.round_check()
+                powerups.reset()
+                time.sleep(1)
+                connections.flush_all()
             else:
                 print(exec(i))
         except Exception as e:
@@ -697,7 +704,7 @@ def local():
 threading.Thread(target=local).start()
 
 
-connections = connections_handler(connection_limit=1)
+connections = connections_handler(connection_limit=2)
 connections.start()
 
 
@@ -741,6 +748,9 @@ while True:
             connections.reset_all()
             bullets.reset()
             connections.round_check()
+            powerups.reset()
+            time.sleep(1)
+            connections.flush_all()
 
     if random.random() < 0.002:
         _X, _Y = random.randrange(0, 64), random.randrange(0, 64)

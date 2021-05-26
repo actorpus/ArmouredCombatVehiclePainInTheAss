@@ -243,9 +243,8 @@ class Menu:
 
 
 class Controller:
-    def __init__(self, clock, display):
+    def __init__(self, clock, display, menu, settings_file=".client_settings.json"):
         pygame.joystick.init()
-        font = pygame.font.SysFont(pygame.font.get_default_font(), 50)
 
         if pygame.joystick.get_count() != 1:
             print("ERROR could not identify single controller, (%i controllers detected)" % pygame.joystick.get_count())
@@ -253,8 +252,9 @@ class Controller:
 
         self.controller = pygame.joystick.Joystick(0)
 
-        display.fill((0, 0, 0))
-        display.blit(font.render("forward/backward", True, (255, 255, 255)), (0, 0))
+        display.fill((200, 200, 200))
+        # display.blit(font.render("forward/backward", True, (255, 255, 255)), (0, 0))
+        menu.draw(display, ["forward/backward"], [])
         pygame.display.update()
 
         for _ in range(20):
@@ -268,8 +268,9 @@ class Controller:
             key=lambda _: abs(_[0])
         )[1]
 
-        display.fill((0, 0, 0))
-        display.blit(font.render("rotation", True, (255, 255, 255)), (0, 0))
+        display.fill((200, 200, 200))
+        # display.blit(font.render("rotation", True, (255, 255, 255)), (0, 0))
+        menu.draw(display, ["rotation"], ["forward/backward"])
         pygame.display.update()
 
         for _ in range(20):
@@ -283,8 +284,9 @@ class Controller:
             key=lambda _: abs(_[0])
         )[1]
 
-        display.fill((0, 0, 0))
-        display.blit(font.render("fire", True, (255, 255, 255)), (0, 0))
+        display.fill((200, 200, 200))
+        # display.blit(font.render("fire", True, (255, 255, 255)), (0, 0))
+        menu.draw(display, ["fire"], ["forward/backward", "rotation"])
         pygame.display.update()
 
         for _ in range(20):
@@ -297,12 +299,36 @@ class Controller:
             ]
         )
 
-        display.fill((0, 0, 0))
+        display.fill((200, 200, 200))
+        # display.blit(font.render("menu", True, (255, 255, 255)), (0, 0))
+        menu.draw(display, ["menu"], ["forward/backward", "rotation", "fire"])
         pygame.display.update()
 
         for _ in range(20):
             clock.tick(10)
             pygame.event.get()
+
+        self.menu = sum(
+            [
+                i if self.controller.get_button(i) else 0 for i in range(self.controller.get_numbuttons())
+            ]
+        )
+
+        display.fill((0, 0, 0))
+        pygame.display.update()
+
+        for _ in range(10):
+            clock.tick(10)
+            pygame.event.get()
+
+        # os.system("attrib -h " + settings_file)
+        #
+        # with open(settings_file, "r") as file:
+        #     data = json.load(file)
+        #
+        # if self.controller.ge
+        #
+        # os.system("attrib +h " + settings_file)
 
     def get_forward(self):
         if self.controller.get_axis(self.movement) < 0:
@@ -331,6 +357,11 @@ class Controller:
     def get_fire(self):
         return self.controller.get_button(
             self.fire
+        )
+
+    def get_menu(self):
+        return self.controller.get_button(
+            self.menu
         )
 
 
@@ -608,7 +639,7 @@ def launch_client(settings):
     power_ups = base64.b85decode(power_ups)
     power_ups = pygame.image.fromstring(power_ups, (140, 14), "RGB")
     if CTRL == "controller":
-        controller = Controller(clock, display)
+        controller = Controller(clock, display, menu)
     ts = {}
     client.connect((IP, PORT))
 
@@ -684,8 +715,20 @@ def launch_client(settings):
                             win_feed
                         )
 
+                    if CTRL == "controller" and controller.get_menu():
+                        menu.draw(
+                            display,
+                            [
+                                tank[5] for tank in data["tanks"]
+                            ],
+                            win_feed
+                        )
+
                 elif data[0] == "W":
                     win_feed.append(data[1:] + " won!")
+
+                    if len(win_feed) > 10:
+                        win_feed.pop(0)
 
                 pygame.display.update()
                 clock.tick()

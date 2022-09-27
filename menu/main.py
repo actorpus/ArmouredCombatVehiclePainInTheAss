@@ -132,19 +132,19 @@ while running:
         menu.draw(
             display,
             [
-                "actorpus",
-                "MrWong",
-                "Knoxy12345",
-                "KA.Smith"
+                "a",
+                "b",
+                "c",
+                "d.d"
             ],
             [
-                "actorpus killed Knoxy12345 with shotgun",
-                "MrWong killed Knoxy12345",
-                "Knoxy12345 killed Knoxy12345 with stupidity",
-                "KA.Smith killed Knoxy12345 with firework",
-                "Knoxy12345 killed Knoxy12345 with stupidity",
-                "Knoxy12345 is just dum now",
-                "Knoxy12345 was kicked for being bad"
+                "d345 with shotgun",
+                "Mre45",
+                "Knoe5 with stupidity",
+                "Keework",
+                "Knogidity",
+                "Knogw",
+                "Knoead"
             ]
         )
 
